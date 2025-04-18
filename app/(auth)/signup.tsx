@@ -12,7 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import ImagePath from "../../constants/ImagePath";
 
-const signup = () => {
+const Signup = () => {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -112,7 +112,7 @@ const signup = () => {
   );
 };
 
-export default signup;
+export default Signup;
 
 const styles = StyleSheet.create({
     clearButton: {

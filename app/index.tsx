@@ -18,7 +18,7 @@ export default function Index() {
             />
           </View>
         </View>
-        <Text className="text-3xl text-blue-500 mb-6 text-center font-semibolz">Fair and smart Wi-Fi usage tracking and billing for shared networks</Text>
+        <Text className="text-2xl text-blue-500 mb-6 text-center font-semibolt">Fair and smart Wi-Fi usage tracking and billing for shared networks</Text>
         <View className="flex-row mt-6">
           <TouchableOpacity onPress={() => router.navigate('/(auth)/signup')} style={styles.SignupBtn}>
                 <Text className="text-blue-500 font-semibold text-center">Sign Up</Text>
@@ -29,6 +29,15 @@ export default function Index() {
         </View>
         <Link href={"/(tabs)/profile"} className="text-2xl text-blue-500 mt-4">
           profile
+        </Link>
+        <Link href={"/(auth)/success"} className="text-2xl text-blue-500 mt-4">
+          success
+        </Link>
+        <Link href={"/(auth)/unsuccess"} className="text-2xl text-blue-500 mt-4">
+          unsuccess
+        </Link>
+        <Link href={"/(auth)/admincheck"} className="text-2xl text-blue-500 mt-4">
+          group admin check
         </Link>
       </View>
     </SafeAreaView>

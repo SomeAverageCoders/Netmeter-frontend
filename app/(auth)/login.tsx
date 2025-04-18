@@ -11,7 +11,7 @@ import {
 import { useRouter } from "expo-router";
 import ImagePath from "../../constants/ImagePath";
 
-const login = () => {
+const Login = () => {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -87,4 +87,4 @@ const login = () => {
   );
 };
 
-export default login;
+export default Login;

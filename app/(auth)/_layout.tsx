@@ -17,6 +17,30 @@ const Authlayout = () => {
           headerShown: false
         }}
       />
+       <Stack.Screen
+        name="success"
+        options={{
+          headerShown: false
+        }}
+      />
+      <Stack.Screen
+        name="unsuccess"
+        options={{
+          headerShown: false
+        }}
+      />
+      <Stack.Screen
+        name="admincheck"
+        options={{
+          headerShown: false
+        }}
+      />
+      <Stack.Screen
+        name="otp"
+        options={{
+          headerShown: false
+        }}
+      />
     </Stack>
   );
 };
