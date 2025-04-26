@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
-const usagesummary = () => {
+const Usagesummary = () => {
   return (
     <View>
       <Text>usage_summary</Text>
@@ -9,6 +9,6 @@ const usagesummary = () => {
   )
 }
 
-export default usagesummary
+export default Usagesummary
 
 const styles = StyleSheet.create({})
