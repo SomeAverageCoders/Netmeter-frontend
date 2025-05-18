@@ -1,7 +1,7 @@
 import { TextInput } from "react-native";
 import React from "react";
 
-export default function Btn({
+export default function Input({
   placeholder,
   password=false,
   value,
