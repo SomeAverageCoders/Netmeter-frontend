@@ -36,13 +36,13 @@ const Profile = () => {
         name: user.name,
         email: user.email,
         phoneNumber: user.phone,
-        profilePicture: user.profilePicture,
+        // profilePicture: user.profilePicture,
       });
       setFormData({
         name: user.name,
         email: user.email,
         phoneNumber: user.phone,
-        profilePicture: formData.profilePicture,
+        // profilePicture: formData.profilePicture,
       });
     } else {
       router.replace("/(auth)/login");

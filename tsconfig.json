@@ -15,5 +15,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "nativewind-env.d.ts"
-, "context/UserContext.jsx", "app/(auth)/phoneVerification.jsx", "app/(auth)/signup.jsx", "services/updateSmsRegionConfig.js", "app/(tabs)/_layout.jsx", "app/(tabs)/Profile.jsx"  ]
+, "context/UserContext.jsx", "app/(auth)/phoneVerification.jsx", "app/(auth)/signup.jsx", "services/updateSmsRegionConfig.js", "app/(tabs)/_layout.jsx", "app/(tabs)/Profile.jsx", "app/screens/Groups/[id].jsx"  ]
 }
