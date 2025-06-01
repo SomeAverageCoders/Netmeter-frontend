@@ -114,20 +114,19 @@ const CreateGroupScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" backgroundColor="#3B82F6" />
       {/* Header */}
-      <View className="bg-blue-500 p-4 mt-4">
-        <View className="flex-row justify-between items-center">
-          <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
-            <View className="items-center ml-4">
-              <Text className="text-white text-xl font-bold text-center">
-                Create Group
-              </Text>
-            </View>
-          </View>
+      <View className="bg-blue-500 p-4">
+        <View className="justify-center items-center relative">
+          <TouchableOpacity
+            className="absolute left-0"
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+          <Text className="text-white text-xl font-bold text-center">
+            Create Group
+          </Text>
         </View>
       </View>
       <View className='flex-1 items-center p-4'>

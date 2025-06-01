@@ -16,28 +16,28 @@ export default function Index() {
   const { setUser } = useContext(UserContext);
   const convex = useConvex();
 
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(auth, async(userInfo)=>{
-  //     if (userInfo) {
-  //       try {
-  //         console.log("User email:", userInfo.email);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async(userInfo)=>{
+      if (userInfo) {
+        try {
+          console.log("User email:", userInfo.email);
       
-  //         const userData = await convex.query(api.Users.GetUserByEmail, {
-  //           email: userInfo?.email ?? "",
-  //         });
+          const userData = await convex.query(api.Users.GetUserByEmail, {
+            email: userInfo?.email ?? "",
+          });
       
-  //         console.log("User data from convex:", userData);
-  //         setUser(userData);
-  //         router.replace("/(tabs)/Home");
-  //       } catch (error) {
-  //         console.error("Error fetching user data:", error);
-  //       }
-  //     }
-  //   })
-  //   return () => {
-  //     unsubscribe();
-  //   };
-  // }, []);
+          console.log("User data from convex:", userData);
+          setUser(userData);
+          router.replace("/(tabs)/Home");
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      }
+    })
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   
   

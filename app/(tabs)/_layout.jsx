@@ -32,7 +32,7 @@ const _layout = () => {
         }}
       />
       <Tabs.Screen
-        name="Usagesummary"
+        name="Usage"
         options={{
           title: "Usage",
           headerShown: false,

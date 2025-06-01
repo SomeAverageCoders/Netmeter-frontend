@@ -222,21 +222,20 @@ const ManageGroupScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" backgroundColor="#3B82F6" />
 
       {/* Header */}
-      <View className="bg-blue-500 p-4 mt-4">
-        <View className="flex-row justify-between items-center">
-          <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
-            <View className="items-center ml-4">
-              <Text className="text-white text-xl font-bold text-center">
-                {groupData.name}
-              </Text>
-            </View>
-          </View>
+      <View className="bg-blue-500 p-4">
+        <View className="justify-center items-center relative">
+          <TouchableOpacity
+            className="absolute left-0"
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+          <Text className="text-white text-xl font-bold text-center">
+            {groupData.name}
+          </Text>
         </View>
       </View>
 
@@ -249,58 +248,58 @@ const ManageGroupScreen = () => {
             </Text>
           </View>
           <View className="border border-gray-200 rounded-b-xl">
-          {/* Table Header */}
-          <View className="flex-row bg-gray-50 p-3 border-b border-gray-200">
-            <View style={{ width: "35%" }}>
-              <Text className="font-semibold text-gray-700">Member</Text>
+            {/* Table Header */}
+            <View className="flex-row bg-gray-50 p-3 border-b border-gray-200">
+              <View style={{ width: "35%" }}>
+                <Text className="font-semibold text-gray-700">Member</Text>
+              </View>
+              <View style={{ width: "55%" }}>
+                <Text className="font-semibold text-gray-700">Devices</Text>
+              </View>
+              <View style={{ width: "10%" }} className="items-center">
+                <Text className="font-semibold text-gray-700 text-center">
+                  Add
+                </Text>
+              </View>
             </View>
-            <View style={{ width: "55%" }}>
-              <Text className="font-semibold text-gray-700">Devices</Text>
-            </View>
-            <View style={{ width: "10%" }} className="items-center">
-              <Text className="font-semibold text-gray-700 text-center">
-                Add
-              </Text>
-            </View>
-          </View>
 
-          {/* Table Rows */}
-          {groupData.members.map((member, index) => (
-            <View
-              key={member.id}
-              className={`flex-row p-3 ${index <= groupData.members.length - 1 ? "border-b border-gray-200" : ""}`}
-            >
-              {/* Member Column */}
-              <View style={{ width: "35%" }} className="justify-center">
-                <View className="flex-row items-center">
-                  {/* <View className="h-8 w-8 rounded-full bg-blue-100 mr-2 items-center justify-center">
+            {/* Table Rows */}
+            {groupData.members.map((member, index) => (
+              <View
+                key={member.id}
+                className={`flex-row p-3 ${index <= groupData.members.length - 1 ? "border-b border-gray-200" : ""}`}
+              >
+                {/* Member Column */}
+                <View style={{ width: "35%" }} className="justify-center">
+                  <View className="flex-row items-center">
+                    {/* <View className="h-8 w-8 rounded-full bg-blue-100 mr-2 items-center justify-center">
                 <Ionicons name="person" size={16} color="#3b82f6" />
               </View> */}
-                  <Text className="font-medium text-gray-800">
-                    {member.username}
-                  </Text>
+                    <Text className="font-medium text-gray-800">
+                      {member.username}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Devices Column */}
+                <View style={{ width: "55%" }} className="justify-center px-2">
+                  {renderDevicesCell(member.devices)}
+                </View>
+
+                {/* Action Column */}
+                <View
+                  style={{ width: "10%" }}
+                  className="justify-center items-center"
+                >
+                  <TouchableOpacity
+                    onPress={() => openAddDeviceModal(member)}
+                    className="h-8 w-8 rounded-full bg-blue-500 items-center justify-center"
+                  >
+                    <Ionicons name="add" size={16} color="white" />
+                  </TouchableOpacity>
                 </View>
               </View>
-
-              {/* Devices Column */}
-              <View style={{ width: "55%" }} className="justify-center px-2">
-                {renderDevicesCell(member.devices)}
-              </View>
-
-              {/* Action Column */}
-              <View
-                style={{ width: "10%" }}
-                className="justify-center items-center"
-              >
-                <TouchableOpacity
-                  onPress={() => openAddDeviceModal(member)}
-                  className="h-8 w-8 rounded-full bg-blue-500 items-center justify-center"
-                >
-                  <Ionicons name="add" size={16} color="white" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
+            ))}
           </View>
           {/* Add New User Button */}
           <View className="mt-4 p-4">

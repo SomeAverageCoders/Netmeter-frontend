@@ -89,24 +89,23 @@ const WifiConfigScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" backgroundColor="#3B82F6" />
       {/* Header */}
-      <View className="bg-blue-500 p-4 mt-4">
-        <View className="flex-row justify-between items-center">
-          <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => navigation.goBack()}>
+       <View className="bg-blue-500 p-4">
+          <View className="justify-center items-center relative">
+            <TouchableOpacity
+              className="absolute left-0"
+              onPress={() => navigation.goBack()}
+            >
               <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
-            <View className="items-center ml-4">
-              <Text className="text-white text-xl font-bold text-center">
-                Wi-Fi Configuration
-              </Text>
-            </View>
+            <Text className="text-white text-xl font-bold text-center">
+              Wi-Fi Configuration
+            </Text>
           </View>
         </View>
-      </View>
 
-      <View className='flex-1 items-center justify-center p-4'>
+      <View className='flex-1 items-center p-4'>
         {/* Wi-Fi Settings Form */}
         <View className="mx-4 mt-6 bg-gray-100 rounded-xl p-4 relative w-full">
           <View className='bg-white rounded-lg shadow-sm p-4 mb-4'>

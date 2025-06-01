@@ -116,14 +116,22 @@ const Home = () => {
       >
         <Ionicons name="add" size={30} color="white" />
       </TouchableOpacity>
+      <Link  href={{
+          pathname: '/screens/BillingSummary/[id]',
+          params: { id: '1' },
+        }}>Billing summary</Link>
+      <Link  href={'/screens/MyQuota/1'}>My Quota</Link>
+      <Link  href={'/screens/BillingHistory'}>BillingHistory</Link>
+      <Link  href={'/screens/MyUsage'}>MyUsage</Link>
+      <Link  href={'/screens/GroupUsage'}>GroupUsage</Link>
     </View>
   );
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" backgroundColor="#3B82F6" />
       <View className="flex-1">
-          <View className="bg-blue-500 py-4 mt-4">
+          <View className="bg-blue-500 py-4">
               <Text className="text-white text-xl font-bold text-center">
                 Home
               </Text>

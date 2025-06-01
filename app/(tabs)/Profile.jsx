@@ -278,7 +278,7 @@ const Profile = () => {
 
   const ChangePasswordView = () => (
     <View className="flex-1">
-      <View className="bg-blue-500 py-4 flex-row items-center mt-4 px-6">
+      <View className="bg-blue-500 py-4 flex-row items-center px-6">
         <TouchableOpacity onPress={() => setViewMode("profile")}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
@@ -349,10 +349,10 @@ const Profile = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" backgroundColor="#3B82F6" />
       <View className="flex-1">
         {viewMode === "profile" && (
-          <View className="bg-blue-500 py-4 mt-4">
+          <View className="bg-blue-500 py-4">
             <Text className="text-white text-xl font-bold text-center">
               Profile
             </Text>
