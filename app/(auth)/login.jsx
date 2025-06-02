@@ -101,12 +101,11 @@ const Login = () => {
         email: userDataFromAPI.email,
         mobile: userDataFromAPI.mobile,
         userRole: userDataFromAPI.userRole,
-        token: token, // Include token for future API calls
+        token: token,
       };
 
       console.log("Prepared user data:", userData);
 
-      // Validate that we have the essential data
       if (!userData.id || !userData.email) {
         console.error("Critical user data missing:", userData);
         Alert.alert("Error", "Unable to retrieve user information. Please try again.");
@@ -118,9 +117,7 @@ const Login = () => {
       
       console.log("User context updated with:", userData);
       
-      // Small delay to ensure context is updated
       setTimeout(() => {
-        // Navigate to home after successful login and context update
         router.replace("/(tabs)/Home");
       }, 100);
       
