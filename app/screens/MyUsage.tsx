@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -26,7 +27,12 @@ interface MonthlyUsageData {
   chartLabels: string[];
 }
 
-const MyUsage = ({ onCheckBillShare }: { onCheckBillShare: () => void }) => {
+interface MyUsageProps {
+  onCheckBillShare: () => void;
+  group: { id: string; name: string };
+}
+
+const MyUsage = ({ onCheckBillShare, group }: MyUsageProps) => {
   const [activeTab, setActiveTab] = useState<'daily' | 'monthly'>('daily');
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const [monthModalVisible, setMonthModalVisible] = useState(false);

@@ -27,7 +27,12 @@ interface GroupUsageData {
   chartLabels: string[];
 }
 
-const GroupUsage = ({ onCheckBillSummary }: { onCheckBillSummary: () => void }) => {
+interface GroupUsageProps {
+  onCheckBillSummary: () => void;
+  group: { id: string; name: string };
+}
+
+const GroupUsage = ({ onCheckBillSummary, group }: GroupUsageProps) => {
   const [activeTab, setActiveTab] = useState<'daily' | 'monthly'>('daily');
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const [monthModalVisible, setMonthModalVisible] = useState(false);
