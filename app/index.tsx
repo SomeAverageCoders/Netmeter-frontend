@@ -3,33 +3,30 @@ import { SafeAreaView, StatusBar, Text, View, Animated, Easing } from "react-nat
 import { useEffect, useRef } from "react";
 import ImagePath from "../constants/ImagePath";
 import Btn from "../components/Btn";
-// import { useUser } from "../context/UserContext";
+import { useUser } from "../context/UserContext";
 import React from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Index() {
   const router = useRouter();
   const spinValue = useRef(new Animated.Value(0)).current;
-  // const { setUser } = useUser();
+  const { user } = useUser();
  
   useEffect(() => {
+
+    if(user){
+      console.log("User already exists, navigating to Home from index.tsx");
+      router.replace('/(tabs)/Home');
+      return;
+    }
+
     const checkUser = async () => {
       console.log("Checking user data in AsyncStorage...from index.tsx");
       const token = await AsyncStorage.getItem("access_token");
       const loggedUserData = await AsyncStorage.getItem("user_data");
       if (token && loggedUserData) {
-        // const parsedUserData = JSON.parse(loggedUserData);
-        // const userData = {
-        //   id: parsedUserData.id,
-        //   name: parsedUserData.name,
-        //   email: parsedUserData.email,
-        //   mobile: parsedUserData.mobile,
-        //   userRole: parsedUserData.userRole,
-        //   token: token, 
           console.log("User data found, navigating to Home...");
           router.replace('/(tabs)/Home');
-        // await setUser(userData); 
-        // Redirect after setting user
       }
     };
     checkUser();
@@ -93,6 +90,4 @@ export default function Index() {
   );
 }
 
-function checkUser() {
-  throw new Error("Function not implemented.");
-}
+

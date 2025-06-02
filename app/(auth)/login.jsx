@@ -26,7 +26,8 @@ const Login = () => {
   
   useEffect(() => {
     if (user) {
-      console.log("User context updated:", user);
+      console.log("User context updated: login ", user);
+      router.replace("/(tabs)/Home");
     }
   }, [user]);
 
