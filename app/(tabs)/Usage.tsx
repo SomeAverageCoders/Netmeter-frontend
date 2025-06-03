@@ -11,6 +11,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import MyUsage from '../screens/MyUsage';
 import GroupUsage from '../screens/GroupUsage';
+import { router } from 'expo-router';
+import { useUser } from "../../context/UserContext";
 
 // Mock group data (replace with API data later)
 const mockGroups = [
@@ -20,6 +22,7 @@ const mockGroups = [
 ];
 
 const Usage = () => {
+  const { user, isLoading } = useUser();
   const [activeUsageTab, setActiveUsageTab] = useState<'my' | 'group'>('my');
   const [selectedGroup, setSelectedGroup] = useState(mockGroups[0]);
   const [groupModalVisible, setGroupModalVisible] = useState(false);
@@ -27,11 +30,13 @@ const Usage = () => {
   const handleCheckBillShare = () => {
     // Handle bill share navigation
     console.log('Navigate to Bill Share');
+    router.push(`/screens/MyQuota/${user.id}`);
   };
 
   const handleCheckBillSummary = () => {
     // Handle bill summary navigation
     console.log('Navigate to Bill Summary');
+    router.push(`/screens/BillingHistory`);
   };
 
   const handleSelectGroup = (group: { id: string; name: string }) => {

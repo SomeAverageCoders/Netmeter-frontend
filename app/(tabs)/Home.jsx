@@ -165,12 +165,6 @@ const Home = () => {
       >
         <Ionicons name="add" size={30} color="white" />
       </TouchableOpacity>
-      <Link  href={{
-          pathname: '/screens/BillingSummary/[id]',
-          params: { id: user.id },
-        }}>Billing summary</Link>
-      <Link  href={`/screens/MyQuota/${user.id}`}>My Quota</Link>
-      <Link  href={'/screens/BillingHistory'}>BillingHistory</Link>
     </View>
   );
 
