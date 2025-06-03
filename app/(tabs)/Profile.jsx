@@ -295,8 +295,15 @@ const Profile = () => {
                 ? { uri: user.profilePicture }
                 : require("../../assets/images/user.png")
             }
-            className="w-24 h-24 rounded-full"
-            style={{ resizeMode: "cover" }}
+            style={{
+              width: 96,
+              height: 96,
+              maxWidth: "100%",
+              maxHeight: 200,
+              borderRadius: 9999,
+              resizeMode: "cover",
+              alignSelf: "center",
+            }}
           />
           </View>
         </View>
@@ -385,12 +392,19 @@ const Profile = () => {
             <View className="bg-blue-500 rounded-full p-0.5">
               <Image
                 source={
-                  formData?.profilePicture
-                    ? { uri: formData.profilePicture }
+                  user?.profilePicture
+                    ? { uri: user.profilePicture }
                     : require("../../assets/images/user.png")
                 }
-                className="w-24 h-24 rounded-full"
-                style={{ resizeMode: "cover" }}
+                style={{
+                  width: 96,
+                  height: 96,
+                  maxWidth: "100%",
+                  maxHeight: 200,
+                  borderRadius: 9999,
+                  resizeMode: "cover",
+                  alignSelf: "center",
+                }}
               />
             </View>
             <TouchableOpacity
