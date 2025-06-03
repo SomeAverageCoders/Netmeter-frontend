@@ -1,67 +1,85 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { WebView } from 'react-native-webview';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+} from 'react-native';
+import MyUsage from '../screens/MyUsage';
+import GroupUsage from '../screens/GroupUsage';
 
-const UsageChart = () => {
-  const accessToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IkNOdjBPSTNSd3FsSEZFVm5hb01Bc2hDSDJYRSIsImtpZCI6IkNOdjBPSTNSd3FsSEZFVm5hb01Bc2hDSDJYRSJ9.eyJhdWQiOiJodHRwczovL2FuYWx5c2lzLndpbmRvd3MubmV0L3Bvd2VyYmkvYXBpIiwiaXNzIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvYWEyMzJkYjItN2E3OC00NDE0LWE1MjktMzNkYjkxMjRjYmE3LyIsImlhdCI6MTc0ODg3MjY5NSwibmJmIjoxNzQ4ODcyNjk1LCJleHAiOjE3NDg4NzY1OTUsImFpbyI6ImsyUmdZRGhpNnV6NTF0bnBlTktDaFFWMlpYYjVBQT09IiwiYXBwaWQiOiI5NmFkOGUyYy1lYjQ1LTRiMGEtYmI0Ni1iZDFmNDA5ODYxZmYiLCJhcHBpZGFjciI6IjEiLCJpZHAiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9hYTIzMmRiMi03YTc4LTQ0MTQtYTUyOS0zM2RiOTEyNGNiYTcvIiwiaWR0eXAiOiJhcHAiLCJvaWQiOiI4NTI3ZmZkYy1kMWUzLTQ3YTItYTVhOC00ZjVlYWExNWU0NmEiLCJyaCI6IjEuQVZVQXNpMGpxbmg2RkVTbEtUUGJrU1RMcHdrQUFBQUFBQUFBd0FBQUFBQUFBQUNfQUFCVkFBLiIsInN1YiI6Ijg1MjdmZmRjLWQxZTMtNDdhMi1hNWE4LTRmNWVhYTE1ZTQ2YSIsInRpZCI6ImFhMjMyZGIyLTdhNzgtNDQxNC1hNTI5LTMzZGI5MTI0Y2JhNyIsInV0aSI6IlFsU2pBVUgxV0UtRlVOUE15U0p2QUEiLCJ2ZXIiOiIxLjAiLCJ4bXNfZnRkIjoiaWZDMzZoY1ZnTEljUWxZNXB6SVZwdjZZV0xGdVFlMFFGTXFteHBIZG5Ub0JhMjl5WldGalpXNTBjbUZzTFdSemJYTSIsInhtc19pZHJlbCI6IjIyIDciLCJ4bXNfcmQiOiIwLjQyTGxZQkppREJVUzRXQVhFbmdpY29YdDFSRWZwNDc2eUkybm5IalRnS0tjUWdJZTV4Z19iWC1jNWI1OUhWLWFQM3YwT2FBb2g1QUFKd01FSElEU0FBIn0.QrQGCtYtbuivZb4MD5K9fFRJ86XXk4kKbYPhZFZRnukUsPkaNcJ3-KWmBNSdZuuoUb6VR012lx3qK7iNXLR9Wp-JESdnQKFR-tTUXWIJWelYElKMl1Pwkjd4faiYbcvc2xbIrW5PYXh0RxmLKaKRXGdqXeTU77wJFplCniSvzHmOrXf3vwT20UxULx4iMa0UlhZmmwgXQvhmhE4yCJZVkpNZyAhQcz0gMm_rPKIlgKER1CNL_pD6TtzdCm2UpmEsrvv6C9zYtiOHKeBlCqi2J-Aihz7Gk_NRmXQulfRdTtTUoyDgOjZRmPZGLWCqgUH3UZIvcc2caeOvxRqhXxd5Qw'; // ⚠️ Must be refreshed every 1 hour
-  const embedUrl =
-    'https://app.powerbi.com/reportEmbed?reportId=03dcc690-947c-483f-87b2-a724edfcad91&groupId=8de4c42d-4d1e-4823-a3ed-2c29f99fdbe4&w=2&config=eyJjbHVzdGVyVXJsIjoiaHR0cHM6Ly9XQUJJLVNPVVRILUVBU1QtQVNJQS1yZWRpcmVjdC5hbmFseXNpcy53aW5kb3dzLm5ldCIsImVtYmVkRmVhdHVyZXMiOnsidXNhZ2VNZXRyaWNzVk5leHQiOnRydWV9fQ%3d%3d';
-    
-  const reportId = '03dcc690-947c-483f-87b2-a724edfcad91';
+const Usage = () => {
+  const [activeUsageTab, setActiveUsageTab] = useState<'my' | 'group'>('my');
 
-  const htmlContent = `
-  <!DOCTYPE html>
-  <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <script src="https://cdn.powerbi.com/libs/powerbi-client/2.21.0/powerbi.js"></script>
-      <style>
-        html, body, #reportContainer { margin: 0; padding: 0; height: 100%; width: 100%; }
-      </style>
-    </head>
-    <body>
-      <div id="reportContainer"></div>
-      <script>
-        const models = window['powerbi-client'].models;
-        const config = {
-          type: 'report',
-          tokenType: models.TokenType.Embed,
-          accessToken: "${accessToken}",
-          embedUrl: "${embedUrl}",
-          id: "${reportId}",
-          settings: {
-            background: models.BackgroundType.Transparent,
-            panes: {
-              filters: { visible: false }
-            }
-          }
-        };
-        powerbi.embed(document.getElementById('reportContainer'), config);
-      </script>
-    </body>
-  </html>
-`;
+  const handleCheckBillShare = () => {
+    // Handle bill share navigation
+    console.log('Navigate to Bill Share');
+  };
 
+  const handleCheckBillSummary = () => {
+    // Handle bill summary navigation
+    console.log('Navigate to Bill Summary');
+  };
 
   return (
-    <View style={styles.container}>
-      <WebView
-        originWhitelist={['*']}
-        source={{ html: htmlContent }}
-        javaScriptEnabled={true}
-        domStorageEnabled={true}
-        startInLoadingState
-        automaticallyAdjustContentInsets={false}
-      />
-    </View>
+    <SafeAreaView className="flex-1 bg-gray-100">
+      <StatusBar barStyle="light-content" backgroundColor="#3B82F6" />
+      
+      {/* Header */}
+      <View className="bg-blue-500 py-4 px-4">
+        <Text className="text-white text-xl font-bold text-center">
+          {activeUsageTab === 'my' ? 'Personal Usage' : 'Usage Summary'}
+        </Text>
+      </View>
+
+      {/* Main Usage Type Tabs */}
+      <View className="bg-white px-4 shadow-sm">
+        <View className="flex-row">
+          <TouchableOpacity
+            onPress={() => setActiveUsageTab('my')}
+            className={`flex-1 py-3 border-b-2 ${
+              activeUsageTab === 'my'
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-transparent'
+            }`}
+          >
+            <Text
+              className={`text-center font-medium ${
+                activeUsageTab === 'my' ? 'text-blue-500' : 'text-gray-600'
+              }`}
+            >
+              My USAGE
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            onPress={() => setActiveUsageTab('group')}
+            className={`flex-1 py-3 border-b-2 ${
+              activeUsageTab === 'group'
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-transparent'
+            }`}
+          >
+            <Text
+              className={`text-center font-medium ${
+                activeUsageTab === 'group' ? 'text-blue-500' : 'text-gray-600'
+              }`}
+            >
+              Group USAGE
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Render the appropriate component based on active tab */}
+      {activeUsageTab === 'my' ? (
+        <MyUsage onCheckBillShare={handleCheckBillShare} />
+      ) : (
+        <GroupUsage onCheckBillSummary={handleCheckBillSummary} />
+      )}
+    </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
-
-export default UsageChart;
+export default Usage;
