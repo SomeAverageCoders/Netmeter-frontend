@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
+import DonutChart from '../../components/DonutChart'; 
+
 
 interface GroupMember {
   id: string;
@@ -33,6 +35,8 @@ const GroupUsage = ({ onCheckBillSummary }: { onCheckBillSummary: () => void }) 
   const [monthModalVisible, setMonthModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState('Oct 2024');
   const [selectedMonth, setSelectedMonth] = useState('Oct 2024');
+
+
 
   // Mock data for group usage
   const [groupUsage, setGroupUsage] = useState<GroupUsageData>({
@@ -90,58 +94,34 @@ const GroupUsage = ({ onCheckBillSummary }: { onCheckBillSummary: () => void }) 
     setMonthModalVisible(false);
   };
 
-  const DonutChart = ({ totalUsage, members, size = 140 }: { totalUsage: number; members: GroupMember[]; size?: number }) => {
-    const strokeWidth = 16;
-    const radius = (size - strokeWidth) / 2;
-    const circumference = radius * 2 * Math.PI;
+//   const DonutChart = ({ totalUsage, members, size = 140 }: { totalUsage: number; members: GroupMember[]; size?: number }) => {
+//     const strokeWidth = 16;
+//     const radius = (size - strokeWidth) / 2;
+//     const circumference = radius * 2 * Math.PI;
 
-    let accumulatedPercentage = 0;
+//     let accumulatedPercentage = 0;
 
-    return (
-      <View className="items-center justify-center" style={{ width: size, height: size }}>
-        {/* SVG commented out for now - you can uncomment and use it if needed */}
-        {/* <svg width={size} height={size} className="absolute"> */}
-          {/* Background circle */}
-          {/* <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke="#E5E7EB"
-            strokeWidth={strokeWidth}
-            fill="transparent"
-          />
-          {/* Progress segments for each member */}
-          {/* {members.map((member, index) => {
-            const strokeDasharray = circumference;
-            const strokeDashoffset = circumference - (member.percentage / 100) * circumference;
-            const rotationAngle = -90 + (accumulatedPercentage / 100) * 360;
-            accumulatedPercentage += member.percentage;
+//     return (
+// <View className="items-center justify-center" style={{ width: size, height: size }}>
+  
+//     {/* Donut Chart Background */}
+//     <DonutChart data={[groupUsage, remainingUsage]} colors={['#4E6CF0', '#E5E7EB']} />
 
-            return (
-              <circle
-                key={member.id}
-                cx={size / 2}
-                cy={size / 2}
-                r={radius}
-                stroke={member.color}
-                strokeWidth={strokeWidth}
-                fill="transparent"
-                strokeDasharray={`${(member.percentage / 100) * circumference} ${circumference}`}
-                strokeLinecap="round"
-                transform={`rotate(${rotationAngle} ${size / 2} ${size / 2})`}
-              />
-            );
-          })}
-        </svg> */} 
-        <View className="absolute items-center">
-          <Text className="text-2xl font-bold text-gray-800">
-            {totalUsage.toFixed(2)}
-          </Text>
-          <Text className="text-sm text-gray-600">GB</Text>
-        </View>
-      </View>
-    );
-  };
+//       {/* Center Text */}
+//       <View className="absolute items-center">
+//         <Text className="text-2xl font-bold text-gray-800">
+//           {totalUsage.toFixed(2)}
+//         </Text>
+//         <Text className="text-sm text-gray-600">GB</Text>
+//       </View>
+
+//   </View>
+//     );
+//   };
+
+const totalMemberUsage = groupUsage.members.reduce((sum, member) => sum + member.usage, 0);
+const remainingUsage = Math.max(0, groupUsage.totalUsage - totalMemberUsage);
+
 
   return (
     <View className="flex-1">
@@ -197,10 +177,12 @@ const GroupUsage = ({ onCheckBillSummary }: { onCheckBillSummary: () => void }) 
 
         {/* Usage Chart */}
         <View className="bg-white rounded-lg p-6 mb-4 shadow-sm">
-          <DonutChart 
-            totalUsage={groupUsage.totalUsage} 
-            members={groupUsage.members}
-          />
+        <DonutChart
+          data={[totalMemberUsage, remainingUsage]}
+          colors={['#4E6CF0', '#E5E7EB']}
+          centerLabelColor="#4E6CF0"
+        />
+
         </View>
 
         {activeTab === 'monthly' && (

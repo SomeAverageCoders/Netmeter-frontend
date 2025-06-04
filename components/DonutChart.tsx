@@ -1,77 +1,72 @@
 import React from 'react';
-import { View, Text, Dimensions, StyleSheet } from 'react-native';
-import { PieChart } from 'react-native-chart-kit';
+import { View, Text, Dimensions } from 'react-native';
+import Svg, { G, Path } from 'react-native-svg';
+import * as d3 from 'd3-shape';
 
-const screenWidth = Dimensions.get('window').width;
+interface DonutChartProps {
+  data: number[];
+  colors: string[];
+  labels?: string[];
+  onSegmentPress?: (index: number, label?: string) => void;
+  size?: number;
+  strokeWidth?: number;
+  showCenterLabel?: boolean;
+  centerLabelColor?: string;
+}
 
-const DonutChart = () => {
-  const data = [
-    {
-      name: 'Download',
-      population: 650,
-      color: '#4E6CF0',
-      legendFontColor: '#7F7F7F',
-      legendFontSize: 14,
-    },
-    {
-      name: 'Upload',
-      population: 350,
-      color: '#8442E3',
-      legendFontColor: '#7F7F7F',
-      legendFontSize: 14,
-    },
-  ];
+const DonutChart: React.FC<DonutChartProps> = ({
+  data,
+  colors,
+  labels,
+  onSegmentPress,
+  size = Dimensions.get('window').width * 0.6,
+  strokeWidth = 30,
+  showCenterLabel = true,
+  centerLabelColor = '#4E6CF0',
+}) => {
+  const radius = size / 2;
+  const total = data.reduce((sum, val) => sum + val, 0);
+
+const pieData = d3.pie<number>()(data);
+  const arcGenerator = d3
+    .arc<d3.PieArcDatum<number>>()
+    .innerRadius(radius - strokeWidth)
+    .outerRadius(radius)
+    .cornerRadius(6);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Network Usage</Text>
-      <View style={styles.chartWrapper}>
-        <PieChart
-          data={data}
-          width={screenWidth - 40}
-          height={220}
-          chartConfig={{
-            backgroundColor: '#ffffff',
-            backgroundGradientFrom: '#ffffff',
-            backgroundGradientTo: '#ffffff',
-            color: () => `#000000`,
+    <View style={{ alignItems: 'center', justifyContent: 'center', width: size, height: size }}>
+      <Svg width={size} height={size}>
+        <G x={radius} y={radius}>
+          {pieData.map((slice: d3.PieArcDatum<number>, index: number) => (
+            <Path
+              key={index}
+              d={arcGenerator(slice) as string}
+              fill={colors[index] || '#ccc'}
+              onPressIn={() => onSegmentPress?.(index, labels?.[index])}
+            />
+          ))}
+        </G>
+      </Svg>
+
+      {showCenterLabel && (
+        <View
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+            transform: [{ translateY: -10 }],
           }}
-          accessor="population"
-          backgroundColor="transparent"
-          paddingLeft="15"
-          center={[10, 10]}
-          hasLegend={false}
-          absolute
-        />
-        <View style={styles.donutCenter}>
-          <Text style={styles.centerText}>65%</Text>
+        >
+          <Text style={{ fontSize: 22, fontWeight: 'bold', color: centerLabelColor }}>
+            {Math.round((data[0] / total) * 100)}%
+          </Text>
         </View>
-      </View>
+      )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { alignItems: 'center', marginTop: 20 },
-  title: { fontSize: 18, marginBottom: 10, fontWeight: 'bold' },
-  chartWrapper: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  donutCenter: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  centerText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#4E6CF0',
-  },
-});
 
 export default DonutChart;
