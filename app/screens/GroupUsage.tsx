@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LineChart } from "react-native-chart-kit";
 import DonutChart from "../../components/DonutChart";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import MonthPicker from 'react-native-month-year-picker';
 
 interface GroupMember {
   id: string;
@@ -39,9 +40,19 @@ const GroupUsage = ({
   const [monthModalVisible, setMonthModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState("Oct 2024");
   const [selectedMonth, setSelectedMonth] = useState("Oct 2024");
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(true);
   const [dateMode, setDateMode] = useState<"date" | "month">("date");
   const [pickerValue, setPickerValue] = useState(new Date());
+
+  // Add this inside your component
+const [showCustomMonthPicker, setShowCustomMonthPicker] = useState(false);
+const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+const months = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+];
+const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i);
+
 
   // Mock data for group usage
   const [groupUsage, setGroupUsage] = useState<GroupUsageData>({
@@ -191,17 +202,116 @@ const GroupUsage = ({
 
       <ScrollView className="flex-1 px-4 py-4">
         {/* Date/Month Selection */}
-        <TouchableOpacity
-          onPress={() => {
-            setDateMode(activeTab === "daily" ? "date" : "month");
-            setShowDatePicker(true);
-          }}
-          className="mb-4"
-        >
-          <Text className="text-gray-600 text-sm mb-2">
-            {activeTab === "daily" ? groupUsage.date : groupUsage.month}
-          </Text>
-        </TouchableOpacity>
+<View className="mb-4">
+  <Text className="text-gray-600 text-sm mb-2 font-medium">
+    {activeTab === "daily" ? "Select Date" : "Select Month"}
+  </Text>
+
+  <TouchableOpacity
+    onPress={() => {
+      if (activeTab === "daily") {
+        setShowDatePicker(true); // native date picker
+      } else {
+        setShowCustomMonthPicker(true); // custom month-year picker
+      }
+    }}
+    className="bg-white border border-gray-300 px-4 py-3 rounded-md"
+  >
+    <Text className="text-gray-800 text-base">
+      {activeTab === "daily" ? selectedDate : selectedMonth}
+    </Text>
+  </TouchableOpacity>
+
+  {/* ✅ Native Date Picker (only for daily) */}
+  {activeTab === "daily" && showDatePicker && (
+    <DateTimePicker
+      value={pickerValue}
+      mode="date"
+      display="default"
+      onChange={(event, selected) => {
+        setShowDatePicker(false);
+        if (selected) {
+          setPickerValue(selected);
+          const formatted = selected.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "2-digit",
+          });
+          setSelectedDate(formatted);
+          setGroupUsage((prev) => ({
+            ...prev,
+            date: formatted,
+            totalUsage: Math.random() * 200 + 100,
+          }));
+        }
+      }}
+    />
+  )}
+
+  {/* ✅ Custom Month-Year Picker (only for monthly) */}
+  {activeTab === "monthly" && showCustomMonthPicker && (
+    <Modal transparent animationType="fade">
+      <View className="flex-1 justify-center items-center bg-black bg-opacity-40">
+        <View className="bg-white rounded-lg p-5 w-80">
+          <Text className="text-lg font-bold mb-4">Select Month & Year</Text>
+
+          {/* Month Selection */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="mb-4"
+          >
+            {months.map((month) => (
+              <TouchableOpacity
+                key={month}
+                onPress={() => {
+                  const formatted = `${month} ${selectedYear}`;
+                  setSelectedMonth(formatted);
+                  setGroupUsage((prev) => ({
+                    ...prev,
+                    month: formatted,
+                    totalUsage: Math.random() * 300 + 150,
+                  }));
+                  setShowCustomMonthPicker(false);
+                }}
+                className="px-3 py-2 mr-2 bg-gray-100 rounded-md"
+              >
+                <Text>{month}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* Year Selection */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {years.map((year) => (
+              <TouchableOpacity
+                key={year}
+                onPress={() => setSelectedYear(year)}
+                className={`px-4 py-2 mr-2 ${
+                  year === selectedYear ? "bg-blue-500" : "bg-gray-100"
+                } rounded-md`}
+              >
+                <Text
+                  className={year === selectedYear ? "text-white" : "text-black"}
+                >
+                  {year}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          <TouchableOpacity
+            onPress={() => setShowCustomMonthPicker(false)}
+            className="mt-4 bg-blue-500 py-3 rounded-md"
+          >
+            <Text className="text-white text-center font-semibold">Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  )}
+</View>
+
 
         {/* Usage Chart */}
         <View className="bg-white rounded-lg p-6 mb-4 shadow-sm">
@@ -301,7 +411,7 @@ const GroupUsage = ({
       >
         <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
           <View className="bg-white rounded-lg p-6 mx-4 max-w-sm w-full">
-            <Text className="text-lg font-bold mb-4">Select Date</Text>
+            {/* <Text className="text-lg font-bold mb-4">Select Date</Text>
             {availableDates.map((date) => (
               <TouchableOpacity
                 key={date}
@@ -320,21 +430,20 @@ const GroupUsage = ({
                   {date}
                 </Text>
               </TouchableOpacity>
-            ))}
-            <TouchableOpacity
+            ))} */}
+            {/* <TouchableOpacity
               onPress={() => setDateModalVisible(false)}
               className="bg-blue-500 py-3 rounded-lg mt-4"
             >
               <Text className="text-white text-center font-semibold">
                 Close
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
       </Modal>
 
-      {/* Month Selection Modal */}
-      {/* Month Selection Modal */}
+
       <Modal
         animationType="slide"
         transparent={true}
@@ -347,7 +456,13 @@ const GroupUsage = ({
             {availableMonths.map((month) => (
               <TouchableOpacity
                 key={month}
-                onPress={() => handleMonthSelect(month)}
+                onPress={() => {
+                  setMonthModalVisible(false);
+                  setTimeout(() => {
+                    setDateMode("month");
+                    setShowDatePicker(true);
+                  }, 300);
+                }}
                 className={`p-3 border-b border-gray-200 ${
                   selectedMonth === month ? "bg-blue-50" : ""
                 }`}
@@ -363,53 +478,18 @@ const GroupUsage = ({
                 </Text>
               </TouchableOpacity>
             ))}
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={() => setMonthModalVisible(false)}
               className="bg-blue-500 py-3 rounded-lg mt-4"
             >
               <Text className="text-white text-center font-semibold">
                 Close
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
       </Modal>
 
-      {/* 📅 Native Date Picker */}
-      {showDatePicker && (
-        <DateTimePicker
-          value={pickerValue}
-          mode="date"
-          display="default"
-          onChange={(event, selectedDate) => {
-            setShowDatePicker(false);
-            if (selectedDate) {
-              setPickerValue(selectedDate);
-
-              const formatted = selectedDate.toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-              });
-
-              if (dateMode === "date") {
-                setSelectedDate(formatted);
-                setGroupUsage((prev) => ({
-                  ...prev,
-                  date: formatted,
-                  totalUsage: Math.random() * 200 + 100,
-                }));
-              } else {
-                setSelectedMonth(formatted);
-                setGroupUsage((prev) => ({
-                  ...prev,
-                  month: formatted,
-                  totalUsage: Math.random() * 300 + 150,
-                }));
-              }
-            }
-          }}
-        />
-      )}
     </View>
   );
 };
