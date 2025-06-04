@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { Appearance, Platform } from 'react-native';
+
+
 import {
   View,
   Text,
@@ -223,30 +226,68 @@ const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i)
   </TouchableOpacity>
 
   {/* ✅ Native Date Picker (only for daily) */}
-  {activeTab === "daily" && showDatePicker && (
-    <DateTimePicker
-      value={pickerValue}
-      mode="date"
-      display="default"
-      onChange={(event, selected) => {
-        setShowDatePicker(false);
-        if (selected) {
-          setPickerValue(selected);
-          const formatted = selected.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "2-digit",
-          });
-          setSelectedDate(formatted);
-          setGroupUsage((prev) => ({
-            ...prev,
-            date: formatted,
-            totalUsage: Math.random() * 200 + 100,
-          }));
-        }
-      }}
-    />
-  )}
+{activeTab === "daily" && showDatePicker && Platform.OS === 'android' && (
+  <DateTimePicker
+    value={pickerValue}
+    mode="date"
+    display="calendar" // <-- forces calendar to open directly
+    onChange={(event, selected) => {
+      setShowDatePicker(false);
+      if (selected) {
+        setPickerValue(selected);
+        const formatted = selected.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+        });
+        setSelectedDate(formatted);
+        setGroupUsage((prev) => ({
+          ...prev,
+          date: formatted,
+          totalUsage: Math.random() * 200 + 100,
+        }));
+      }
+    }}
+  />
+)}
+
+{/* iOS fallback */}
+{activeTab === "daily" && showDatePicker && Platform.OS === 'ios' && (
+<Modal transparent animationType="fade">
+  <View className="flex-1 justify-end bg-black bg-opacity-40">
+    <View className="bg-white p-4 rounded-t-xl">
+      <View style={{ backgroundColor: '#fff' }}>
+        <DateTimePicker
+          value={pickerValue}
+          mode="date"
+          display="spinner"
+          themeVariant="light" // force light mode
+          textColor="#000"     // 🔥 add this line if needed, but may not work on all devices
+          onChange={(event, selected) => {
+            setShowDatePicker(false);
+            if (selected) {
+              setPickerValue(selected);
+              const formatted = selected.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "2-digit",
+              });
+              setSelectedDate(formatted);
+              setGroupUsage((prev) => ({
+                ...prev,
+                date: formatted,
+                totalUsage: Math.random() * 200 + 100,
+              }));
+            }
+          }}
+        />
+      </View>
+    </View>
+  </View>
+</Modal>
+
+)}
+
 
   {/* ✅ Custom Month-Year Picker (only for monthly) */}
   {activeTab === "monthly" && showCustomMonthPicker && (
