@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, Dimensions } from 'react-native';
-import Svg, { G, Path } from 'react-native-svg';
+import { View, Text as RNText, Dimensions } from 'react-native';
+import Svg, { G, Path, Text as SvgText } from 'react-native-svg';
 import * as d3 from 'd3-shape';
 
 interface DonutChartProps {
@@ -12,6 +12,7 @@ interface DonutChartProps {
   strokeWidth?: number;
   showCenterLabel?: boolean;
   centerLabelColor?: string;
+  totalCapacity?: number;
 }
 
 const DonutChart: React.FC<DonutChartProps> = ({
@@ -23,29 +24,52 @@ const DonutChart: React.FC<DonutChartProps> = ({
   strokeWidth = 30,
   showCenterLabel = true,
   centerLabelColor = '#4E6CF0',
+  totalCapacity = 100,
 }) => {
   const radius = size / 2;
-  const total = data.reduce((sum, val) => sum + val, 0);
+  const totalUsage = data.reduce((sum, val) => sum + val, 0);
 
-const pieData = d3.pie<number>()(data);
+  const pieData = d3.pie<number>()(data);
   const arcGenerator = d3
     .arc<d3.PieArcDatum<number>>()
     .innerRadius(radius - strokeWidth)
     .outerRadius(radius)
     .cornerRadius(6);
 
+  const labelArcGenerator = d3
+    .arc<d3.PieArcDatum<number>>()
+    .innerRadius(radius - strokeWidth / 2)
+    .outerRadius(radius - strokeWidth / 2); 
+
   return (
     <View style={{ alignItems: 'center', justifyContent: 'center', width: size, height: size }}>
       <Svg width={size} height={size}>
         <G x={radius} y={radius}>
-          {pieData.map((slice: d3.PieArcDatum<number>, index: number) => (
-            <Path
-              key={index}
-              d={arcGenerator(slice) as string}
-              fill={colors[index] || '#ccc'}
-              onPressIn={() => onSegmentPress?.(index, labels?.[index])}
-            />
-          ))}
+          {pieData.map((slice, index) => {
+            const arcPath = arcGenerator(slice) as string;
+            const [labelX, labelY] = labelArcGenerator.centroid(slice);
+            const labelText = labels?.[index] || '';
+
+            return (
+              <React.Fragment key={index}>
+                <Path
+                  d={arcPath}
+                  fill={colors[index % colors.length] || '#ccc'}
+                  onPressIn={() => onSegmentPress?.(index, labelText)}
+                />
+                <SvgText
+                  x={labelX}
+                  y={labelY}
+                  fill="white"
+                  fontSize="10"
+                  fontWeight="bold"
+                  textAnchor="middle"
+                >
+                  {labelText}
+                </SvgText>
+              </React.Fragment>
+            );
+          })}
         </G>
       </Svg>
 
@@ -60,9 +84,12 @@ const pieData = d3.pie<number>()(data);
             transform: [{ translateY: -10 }],
           }}
         >
-          <Text style={{ fontSize: 22, fontWeight: 'bold', color: centerLabelColor }}>
-            {Math.round((data[0] / total) * 100)}%
-          </Text>
+          <RNText style={{ fontSize: 22, fontWeight: 'bold', color: centerLabelColor }}>
+            {Math.round((totalUsage / totalCapacity) * 100)}%
+          </RNText>
+          <RNText style={{ fontSize: 12, color: '#888' }}>
+            {totalUsage.toFixed(1)} / {totalCapacity} GB
+          </RNText>
         </View>
       )}
     </View>
