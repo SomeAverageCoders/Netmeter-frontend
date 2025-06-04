@@ -37,6 +37,13 @@ const ManageGroupScreen = () => {
   const [searching, setSearching] = useState(false);
   const [addingMember, setAddingMember] = useState(false);
   const [addingDevice, setAddingDevice] = useState(false);
+  const [removingMember, setRemovingMember] = useState(null);
+  const [removingDevice, setRemovingDevice] = useState(null);
+ const [showRemovalModal, setShowRemovalModal] = useState(false);
+  const [removalType, setRemovalType] = useState('');
+  const [itemToRemove, setItemToRemove] = useState(null);
+  const [memberNameForDevice, setMemberNameForDevice] = useState(''); 
+  const [deviceOwnerUserId, setDeviceOwnerUserId] = useState(null);
 
   // Fetch group members and devices
   const fetchGroupData = async () => {
@@ -51,7 +58,7 @@ const ManageGroupScreen = () => {
       console.error('Error fetching group data:', error);
       Alert.alert('Error', 'Failed to load group data. Please try again.');
     }
-  };
+  }
 
   // Fetch WiFi configuration
   const fetchWifiData = async () => {
@@ -92,7 +99,9 @@ const ManageGroupScreen = () => {
     setModalVisible(true);
   };
 
+
   const handleAddDevice = async () => {
+    console.log("Adding device for member:", selectedMember.id);
     if (
       deviceNickname.trim() === "" ||
       deviceMacAddress.trim() === "" ||
@@ -101,17 +110,25 @@ const ManageGroupScreen = () => {
       Alert.alert("Error", "Please enter both device nickname and MAC address");
       return;
     }
-
-    // Basic MAC address validation
-    const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
-    if (!macRegex.test(deviceMacAddress.trim())) {
+    console.log("before validation", deviceMacAddress.trim());
+    // Normalize MAC address: remove spaces, convert to uppercase, replace any separator with :
+    let normalizedMac = deviceMacAddress.trim().toUpperCase().replace(/[^0-9A-F]/g, ":");
+    // Remove duplicate colons
+    normalizedMac = normalizedMac.replace(/:+/g, ":");
+    // Remove leading/trailing colons
+    normalizedMac = normalizedMac.replace(/^:|:$/g, "");
+    // Basic MAC address validation (accepts : or - as separator)
+    const macRegex = /^([0-9A-F]{2}[:-]?){5}[0-9A-F]{2}$/;
+    if (!macRegex.test(normalizedMac)) {
       Alert.alert(
         "Error",
         "Please enter a valid MAC address (e.g., 00:1B:44:11:3A:B7)"
       );
       return;
     }
-
+    // Use normalized MAC address for submission
+    setDeviceMacAddress(normalizedMac);
+    console.log("after validation", normalizedMac);
     setAddingDevice(true);
     
     try {
@@ -149,6 +166,155 @@ const ManageGroupScreen = () => {
     } finally {
       setAddingDevice(false);
     }
+  };
+
+  const RemovalModal = () => (
+    <View
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0,0,0,0.4)",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 100,
+      }}
+    >
+      <View
+        style={{
+          backgroundColor: "white",
+          borderRadius: 16,
+          padding: 24,
+          width: "80%",
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 12 }}>
+          {`Remove ${removalType === 'member' ? 'Member' : 'Device'}`}
+        </Text>
+        <Text style={{ fontSize: 16, marginBottom: 24, textAlign: "center" }}>
+          {removalType === 'member' 
+            ? `Are you sure you want to remove ${itemToRemove?.name} from this group?`
+            : `Are you sure you want to remove "${itemToRemove?.name}" from this group?`
+          }
+        </Text>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%" }}>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              backgroundColor: "#ddecff",
+              padding: 12,
+              borderRadius: 8,
+              marginRight: 8,
+              alignItems: "center",
+            }}
+            onPress={() => {
+              setShowRemovalModal(false);
+              setItemToRemove(null);
+              setRemovalType('');
+              setMemberNameForDevice('');
+              setDeviceOwnerUserId(null);
+            }}
+          >
+            <Text style={{ color: "#3B82F6", fontWeight: "bold" }}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              backgroundColor: "#fee2e2",
+              padding: 12,
+              borderRadius: 8,
+              marginLeft: 8,
+              alignItems: "center",
+            }}
+            onPress={confirmRemoval}
+          >
+            <Text style={{ color: "#dc2626", fontWeight: "bold" }}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+    // Updated handleRemoveMember function
+  const handleRemoveMember = (member) => {
+    setItemToRemove(member);
+    setRemovalType('member');
+    setShowRemovalModal(true);
+  };
+
+  // Updated handleRemoveDevice function
+  const handleRemoveDevice = (device, memberName, userId) => {
+    setItemToRemove(device);
+    setRemovalType('device');
+    setMemberNameForDevice(memberName);
+    setDeviceOwnerUserId(userId);
+    setShowRemovalModal(true);
+  };
+
+  // New confirmRemoval function that handles the actual removal
+  const confirmRemoval = async () => {
+    if (removalType === 'member') {
+      // Remove member logic
+      setRemovingMember(itemToRemove.id);
+      
+      try {
+        const response = await axios.delete(
+          `http://localhost:3000/groups/${groupId}/remove-member/${itemToRemove.id}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        // Refresh group data to show updated members
+        await fetchGroupData();
+        
+        console.log("Success", `${itemToRemove.name} has been removed from the group.`);
+        
+      } catch (error) {
+        console.error('Error removing member:', error);
+        Alert.alert('Error', error.message || 'Failed to remove member. Please try again.');
+      } finally {
+        setRemovingMember(null);
+      }
+    } else if (removalType === 'device') {
+      // Remove device logic
+      setRemovingDevice(itemToRemove.id);
+      
+      try {
+        const response = await axios.delete(
+          `http://localhost:3000/devices/${itemToRemove.id}/group/${groupId}/user/${deviceOwnerUserId}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        console.log('Remove device response:', response);
+
+        // Refresh group data to show updated devices
+        await fetchGroupData();
+        
+        Alert.alert("Success", `"${itemToRemove.name}" has been removed from the group.`);
+        
+      } catch (error) {
+        console.error('Error removing device:', error);
+        Alert.alert('Error', error.response?.data?.message || 'Failed to remove device. Please try again.');
+      } finally {
+        setRemovingDevice(null);
+      }
+    }
+
+    // Close modal and reset state
+    setShowRemovalModal(false);
+    setItemToRemove(null);
+    setRemovalType('');
+    setMemberNameForDevice('');
+    setDeviceOwnerUserId(null);
   };
 
   // Search for users functionality (from CreateGroupScreen)
@@ -240,7 +406,7 @@ const ManageGroupScreen = () => {
     }
   };
 
-  const renderDevicesCell = (devices) => {
+  const renderDevicesCell = (devices, memberName, memberId) => {
     if (!devices || devices.length === 0) {
       return (
         <Text className="text-gray-500 italic text-sm">
@@ -252,11 +418,24 @@ const ManageGroupScreen = () => {
     return (
       <View>
         {devices.map((device, index) => (
-          <View key={device.id} className="mb-1">
-            <Text className="text-sm font-medium">{device.name}</Text>
-            {device.macAddress && (
-              <Text className="text-xs text-gray-500">{device.macAddress}</Text>
-            )}
+          <View key={device.id} className="mb-2 flex-row items-center justify-between">
+            <View className="flex-1">
+              <Text className="text-sm font-medium">{device.name}</Text>
+              {device.macAddress && (
+                <Text className="text-xs text-gray-500">{device.macAddress}</Text>
+              )}
+            </View>
+            <TouchableOpacity
+              onPress={() => handleRemoveDevice(device, memberName, memberId)}
+              className="pr-6"
+              disabled={removingDevice === device.id}
+            >
+              {removingDevice === device.id ? (
+                <Ionicons name="hourglass" size={12} color="#ef4444" />
+              ) : (
+                <Ionicons name="close-circle" size={14} color="#ef4444" />
+              )}
+            </TouchableOpacity>
           </View>
         ))}
       </View>
@@ -333,15 +512,15 @@ const ManageGroupScreen = () => {
           <View className="border border-gray-200 rounded-b-xl">
             {/* Table Header */}
             <View className="flex-row bg-gray-50 p-3 border-b border-gray-200">
-              <View style={{ width: "35%" }}>
+              <View style={{ width: "30%" }}>
                 <Text className="font-semibold text-gray-700">Member</Text>
               </View>
               <View style={{ width: "55%" }}>
                 <Text className="font-semibold text-gray-700">Devices</Text>
               </View>
-              <View style={{ width: "10%" }} className="items-center">
+              <View style={{ width: "15%" }} className="items-center">
                 <Text className="font-semibold text-gray-700 text-center">
-                  Add
+                  Actions
                 </Text>
               </View>
             </View>
@@ -351,14 +530,25 @@ const ManageGroupScreen = () => {
               groupData.members.map((member, index) => (
                 <View
                   key={member.id}
-                  className={`flex-row p-3 ${index < groupData.members.length - 1 ? "border-b border-gray-200" : ""}`}
+                  className={`flex-row p-3 ${index < groupData.members.length ? "border-b border-gray-300" : ""}`}
                 >
                   {/* Member Column */}
-                  <View style={{ width: "35%" }} className="justify-center">
-                    <View className="flex-row items-center">
-                      <Text className="font-medium text-gray-800">
+                  <View style={{ width: "30%" }} className="justify-center">
+                    <View className="flex-row items-center justify-between">
+                      <Text className="font-medium text-gray-800 flex-1">
                         {member.name}
                       </Text>
+                      <TouchableOpacity
+                        onPress={() => handleRemoveMember(member)}
+                        className="pr-6"
+                        disabled={removingMember === member.id}
+                      >
+                        {removingMember === member.id ? (
+                          <Ionicons name="hourglass" size={12} color="#ef4444" />
+                        ) : (
+                          <Ionicons name="close-circle" size={14} color="#ef4444" />
+                        )}
+                      </TouchableOpacity>
                     </View>
                   </View>
 
@@ -367,17 +557,17 @@ const ManageGroupScreen = () => {
                     style={{ width: "55%" }}
                     className="justify-center"
                   >
-                    {renderDevicesCell(member.devices)}
+                    {renderDevicesCell(member.devices, member.name, member.id)}
                   </View>
 
                   {/* Action Column */}
                   <View
-                    style={{ width: "10%" }}
+                    style={{ width: "15%" }}
                     className="justify-center items-center"
                   >
                     <TouchableOpacity
                       onPress={() => openAddDeviceModal(member)}
-                      className="h-8 w-8 rounded-full bg-blue-500 items-center justify-center"
+                      className="h-6 w-6 rounded-full bg-blue-500 items-center justify-center"
                     >
                       <Ionicons name="add" size={16} color="white" />
                     </TouchableOpacity>
@@ -387,12 +577,12 @@ const ManageGroupScreen = () => {
           </View>
 
           {/* Add New User Button */}
-          <View className="mt-4 p-4">
+          <View className="mt-4 p-4 justify-right items-center">
             <TouchableOpacity
-              className="bg-blue-500 py-3 rounded-lg items-center"
+              className="bg-blue-500 py-3 px-4 rounded-lg items-center w-1/2"
               onPress={() => setAddUserModalVisible(true)}
             >
-              <Text className="text-white font-bold text-base">
+              <Text className="text-white font-bold">
                 Add New User
               </Text>
             </TouchableOpacity>
@@ -662,29 +852,7 @@ const ManageGroupScreen = () => {
           </View>
         </View>
       </Modal>
-
-      {/* WiFi Config Modal Placeholder */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={wifiConfigModalVisible}
-        onRequestClose={() => setWifiConfigModalVisible(false)}
-      >
-        <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
-          <View className="bg-white rounded-xl p-6 mx-4 w-80">
-            <Text className="text-lg font-bold mb-4 text-center">
-              WiFi Configuration
-            </Text>
-            
-            <TouchableOpacity
-              className="bg-blue-500 py-3 rounded-lg items-center"
-              onPress={() => setWifiConfigModalVisible(false)}
-            >
-              <Text className="text-white font-bold">Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      {showRemovalModal && <RemovalModal />}
     </SafeAreaView>
   );
 };
