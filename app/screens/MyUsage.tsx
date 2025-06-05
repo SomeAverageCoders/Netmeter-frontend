@@ -101,31 +101,6 @@ const MyUsage = ({ onCheckBillShare }: { onCheckBillShare: () => void }) => {
 
     return (
       <View className="items-center justify-center" style={{ width: size, height: size }}>
-        {/* SVG commented out for now - you can uncomment and use it if needed */}
-        {/* <svg width={size} height={size} className="absolute"> */}
-          {/* Background circle */}
-          {/* <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke="#E5E7EB"
-            strokeWidth={strokeWidth}
-            fill="transparent"
-          /> */}
-          {/* Progress circle */}
-          {/* <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke="#3B82F6"
-            strokeWidth={strokeWidth}
-            fill="transparent"
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          /> */}
-        {/* </svg> */}
         <Text className="text-2xl font-bold text-gray-800 absolute">
           {percentage.toFixed(2)}%
         </Text>
