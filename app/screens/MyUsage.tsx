@@ -421,6 +421,7 @@ const MyUsage = ({ onCheckBillShare }: { onCheckBillShare: () => void }) => {
   const [activeTab, setActiveTab] = useState<"daily" | "monthly">("daily");
   const [selectedDate, setSelectedDate] = useState("16 Oct 2024");
   const [dailyUsage, setDailyUsage] = useState<any>(null);
+  const [monthlyUsage, setMonthlyUsage] = useState<any>(null); // Monthly usage state
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickerValue, setPickerValue] = useState(new Date());
   const screenWidth = Dimensions.get("window").width;
@@ -428,6 +429,7 @@ const MyUsage = ({ onCheckBillShare }: { onCheckBillShare: () => void }) => {
   useEffect(() => {
     // Initialize data when the component mounts
     fetchDailyUsageData(selectedDate);
+    fetchMonthlyUsageData("Oct 2024"); // Initialize monthly data
   }, []);
 
   const fetchDailyUsageData = (date: string) => {
@@ -441,6 +443,18 @@ const MyUsage = ({ onCheckBillShare }: { onCheckBillShare: () => void }) => {
         chartLabels: ["00", "02", "04", "06", "08", "10", "12", "14", "16", "18", "20", "22"],
       };
       setDailyUsage(mockData);
+    }, 500);
+  };
+
+  const fetchMonthlyUsageData = (month: string) => {
+    // Mock data fetching logic for monthly usage
+    setTimeout(() => {
+      const mockData = {
+        totalUsage: Math.random() * 300 + 150,
+        chartData: Array.from({ length: 12 }, () => Math.floor(Math.random() * 100 + 20)),
+        chartLabels: ["1", "3", "5", "7", "9", "11", "13", "15", "17", "19", "21", "23"],
+      };
+      setMonthlyUsage(mockData);
     }, 500);
   };
 
@@ -546,6 +560,57 @@ const MyUsage = ({ onCheckBillShare }: { onCheckBillShare: () => void }) => {
                   datasets: [
                     {
                       data: dailyUsage.chartData,
+                    },
+                  ],
+                }}
+                width={Dimensions.get("window").width - 56}
+                height={200}
+                yAxisSuffix="GB"
+                chartConfig={{
+                  backgroundColor: "#ffffff",
+                  backgroundGradientFrom: "#ffffff",
+                  backgroundGradientTo: "#ffffff",
+                  decimalPlaces: 2,
+                  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+                  labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`,
+                  style: {
+                    borderRadius: 16,
+                  },
+                  propsForDots: {
+                    r: "4",
+                    strokeWidth: "2",
+                    stroke: "#3B82F6",
+                  },
+                }}
+                bezier
+                style={{
+                  marginVertical: 8,
+                  borderRadius: 16,
+                }}
+              />
+            </View>
+          </View>
+        )}
+
+        {/* Monthly Usage Section */}
+        {activeTab === "monthly" && monthlyUsage && (
+          <View>
+            <View className="bg-white rounded-lg p-6 mb-4 shadow-sm">
+              <Text className="text-lg font-bold text-gray-800 mb-2">
+                Monthly Usage: {monthlyUsage.totalUsage.toFixed(2)} GB
+              </Text>
+            </View>
+
+            <View className="bg-white rounded-lg p-4 mb-4 shadow-sm">
+              <Text className="text-lg font-semibold text-gray-800 mb-4">
+                Monthly Usage Distribution
+              </Text>
+              <LineChart
+                data={{
+                  labels: monthlyUsage.chartLabels,
+                  datasets: [
+                    {
+                      data: monthlyUsage.chartData,
                     },
                   ],
                 }}
