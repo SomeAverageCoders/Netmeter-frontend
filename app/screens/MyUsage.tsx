@@ -1,200 +1,142 @@
-import * as React from 'react';
-import { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Modal,
-  Dimensions,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LineChart } from 'react-native-chart-kit';
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, ScrollView, Modal, Dimensions, Platform } from "react-native";
+import { LineChart } from "react-native-chart-kit";
+import Svg, { Circle } from "react-native-svg"; 
+import CustomDatePicker from "@/components/CustomDatePicker";
 
-interface UsageData {
-  percentage: number;
-  current: number;
-  limit: number;
-  date: string;
-  chartData: number[];
-  chartLabels: string[];
-}
+// Donut chart component using react-native-svg
+const DonutChart = ({ percentage, size = 120 }: { percentage: number; size?: number }) => {
+  const strokeWidth = 12;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
-interface MonthlyUsageData {
-  totalUsage: number;
-  month: string;
-  chartData: number[];
-  chartLabels: string[];
-}
+  return (
+    <View style={{ justifyContent: "center", alignItems: "center", width: size, height: size }}>
+      <Text style={{ fontSize: 24, fontWeight: "bold", position: "absolute" }}>
+        {percentage.toFixed(2)}%
+      </Text>
+      <Svg width={size} height={size}>
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#E0E0E0"
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#3B82F6"
+          strokeWidth={strokeWidth}
+          fill="none"
+          strokeDasharray={strokeDasharray}
+          strokeDashoffset={strokeDashoffset}
+        />
+      </Svg>
+    </View>
+  );
+};
 
-interface MyUsageProps {
-  onCheckBillShare: () => void;
-  group: { id: string; name: string };
-}
-
-const MyUsage = ({ onCheckBillShare, group }: MyUsageProps) => {
-  const [activeTab, setActiveTab] = useState<'daily' | 'monthly'>('daily');
-  const [dateModalVisible, setDateModalVisible] = useState(false);
-  const [monthModalVisible, setMonthModalVisible] = useState(false);
-  const [selectedDate, setSelectedDate] = useState('16 Oct 2024');
-  const [selectedMonth, setSelectedMonth] = useState('Oct 2024');
-
-  // Mock data for daily usage
-  const [dailyUsage, setDailyUsage] = useState<UsageData>({
-    percentage: 8.21,
-    current: 0.32,
-    limit: 3,
-    date: '16 Oct 2024',
-    chartData: [0.1, 0.12, 0.08, 0.15, 0.25, 0.32, 0.28, 0.35, 0.42, 0.38, 0.45, 0.32],
-    chartLabels: ['00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22'],
+const formatDateForDisplay = (date: Date) =>
+  date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
   });
 
-  // Mock data for monthly usage
-  const [monthlyUsage, setMonthlyUsage] = useState<MonthlyUsageData>({
-    totalUsage: 45.8,
-    month: 'Oct 2024',
-    chartData: [2.1, 3.2, 2.8, 4.5, 3.9, 5.2, 4.8, 6.1, 5.7, 7.2, 6.8, 8.1, 7.5, 9.2, 8.8],
-    chartLabels: ['1', '3', '5', '7', '9', '11', '13', '15', '17', '19', '21', '23', '25', '27', '29'],
+const formatDateForFetch = (date: Date) =>
+  date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
   });
 
-  const screenWidth = Dimensions.get('window').width;
+const MyUsage = ({ onCheckBillShare }: { onCheckBillShare: () => void }) => {
+  const [activeTab, setActiveTab] = useState<"daily" | "monthly">("daily");
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date("2024-10-16"));
+  const [dailyUsage, setDailyUsage] = useState<any>(null);
+  const [monthlyUsage, setMonthlyUsage] = useState<any>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [pickerValue, setPickerValue] = useState(new Date());
+  const screenWidth = Dimensions.get("window").width;
 
-  const availableDates = [
-    '16 Oct 2024',
-    '15 Oct 2024',
-    '14 Oct 2024',
-    '13 Oct 2024',
-    '12 Oct 2024',
-  ];
+  useEffect(() => {
+    fetchDailyUsageData(formatDateForFetch(selectedDate));
+    fetchMonthlyUsageData("Oct 2024");
+  }, []);
 
-  const availableMonths = [
-    'Oct 2024',
-    'Sep 2024',
-    'Aug 2024',
-    'Jul 2024',
-    'Jun 2024',
-  ];
-
-  const handleDateSelect = (date: string) => {
-    setSelectedDate(date);
-    // Mock data update for selected date
-    setDailyUsage(prev => ({
-      ...prev,
-      date,
-      percentage: Math.random() * 15 + 5,
-      current: Math.random() * 2 + 0.1,
-    }));
-    setDateModalVisible(false);
+  const fetchDailyUsageData = (date: string) => {
+    setTimeout(() => {
+      const mockData = {
+        percentage: Math.random() * 15 + 5,
+        current: Math.random() * 2 + 0.1,
+        limit: 3,
+        chartData: Array.from({ length: 12 }, () => Math.floor(Math.random() * 100 + 20)),
+        chartLabels: ["00", "02", "04", "06", "08", "10", "12", "14", "16", "18", "20", "22"],
+      };
+      setDailyUsage(mockData);
+    }, 500);
   };
 
-  const handleMonthSelect = (month: string) => {
-    setSelectedMonth(month);
-    // Mock data update for selected month
-    setMonthlyUsage(prev => ({
-      ...prev,
-      month,
-      totalUsage: Math.random() * 50 + 20,
-    }));
-    setMonthModalVisible(false);
+  const fetchMonthlyUsageData = (month: string) => {
+    setTimeout(() => {
+      const mockData = {
+        totalUsage: Math.random() * 300 + 150,
+        chartData: Array.from({ length: 12 }, () => Math.floor(Math.random() * 100 + 20)),
+        chartLabels: ["1", "3", "5", "7", "9", "11", "13", "15", "17", "19", "21", "23"],
+      };
+      setMonthlyUsage(mockData);
+    }, 500);
   };
 
-  const DonutChart = ({ percentage, size = 120 }: { percentage: number; size?: number }) => {
-    const strokeWidth = 12;
-    const radius = (size - strokeWidth) / 2;
-    const circumference = radius * 2 * Math.PI;
-    const strokeDasharray = circumference;
-    const strokeDashoffset = circumference - (percentage / 100) * circumference;
-
-    return (
-      <View className="items-center justify-center" style={{ width: size, height: size }}>
-        {/* SVG commented out for now - you can uncomment and use it if needed */}
-        {/* <svg width={size} height={size} className="absolute"> */}
-          {/* Background circle */}
-          {/* <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke="#E5E7EB"
-            strokeWidth={strokeWidth}
-            fill="transparent"
-          /> */}
-          {/* Progress circle */}
-          {/* <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke="#3B82F6"
-            strokeWidth={strokeWidth}
-            fill="transparent"
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          /> */}
-        {/* </svg> */}
-        <Text className="text-2xl font-bold text-gray-800 absolute">
-          {percentage.toFixed(2)}%
-        </Text>
-      </View>
-    );
-  };
+  // const handleDateChange = (event: any, selected: Date | undefined) => {
+  //   if (event.type === "set" && selected) {
+  //     setPickerValue(selected);
+  //     setSelectedDate(selected);
+  //     fetchDailyUsageData(formatDateForFetch(selected));
+  //   }
+  //   setShowDatePicker(false);
+  // };
 
   return (
     <View className="flex-1">
-      {/* Daily/Monthly Tabs */}
       <View className="bg-white px-4">
         <View className="flex-row">
-          <TouchableOpacity
-            onPress={() => setActiveTab('daily')}
-            className={`flex-1 py-3 border-b-2 ${
-              activeTab === 'daily'
-                ? 'border-blue-500 bg-gray-100'
-                : 'border-transparent'
-            }`}
-          >
-            <Text
-              className={`text-center font-medium ${
-                activeTab === 'daily' ? 'text-blue-500' : 'text-gray-600'
+          {['daily', 'monthly'].map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => setActiveTab(tab as any)}
+              className={`flex-1 py-3 border-b-2 ${
+                activeTab === tab ? "border-blue-500 bg-gray-100" : "border-transparent"
               }`}
             >
-              Daily
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            onPress={() => setActiveTab('monthly')}
-            className={`flex-1 py-3 border-b-2 ${
-              activeTab === 'monthly'
-                ? 'border-blue-500 bg-gray-100'
-                : 'border-transparent'
-            }`}
-          >
-            <Text
-              className={`text-center font-medium ${
-                activeTab === 'monthly' ? 'text-blue-500' : 'text-gray-600'
-              }`}
-            >
-              Monthly
-            </Text>
-          </TouchableOpacity>
+              <Text
+                className={`text-center font-medium ${
+                  activeTab === tab ? "text-blue-500" : "text-gray-600"
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
 
       <ScrollView className="flex-1 px-4 py-4">
-        {activeTab === 'daily' ? (
+        {activeTab === "daily" && dailyUsage && (
           <View>
-            {/* Date and Usage Info */}
-            <TouchableOpacity
-              onPress={() => setDateModalVisible(true)}
-              className="mb-4"
-            >
-              <Text className="text-gray-600 text-sm mb-2">{dailyUsage.date}</Text>
+            <TouchableOpacity onPress={() => setShowDatePicker(true)} className="mb-4">
+              <Text className="text-gray-600 text-sm mb-2">{formatDateForDisplay(selectedDate)}</Text>
             </TouchableOpacity>
 
             <View className="bg-white rounded-lg p-6 mb-4 shadow-sm">
               <View className="flex-row items-center justify-between">
                 <DonutChart percentage={dailyUsage.percentage} />
-                
+
                 <View className="flex-1 ml-6">
                   <Text className="text-lg font-bold text-gray-800 mb-2">
                     Daily Limit: {dailyUsage.limit} GB
@@ -207,7 +149,6 @@ const MyUsage = ({ onCheckBillShare, group }: MyUsageProps) => {
               </View>
             </View>
 
-            {/* Daily Usage Distribution Chart */}
             <View className="bg-white rounded-lg p-4 mb-4 shadow-sm">
               <Text className="text-lg font-semibold text-gray-800 mb-4">
                 Daily Usage Distribution
@@ -215,65 +156,35 @@ const MyUsage = ({ onCheckBillShare, group }: MyUsageProps) => {
               <LineChart
                 data={{
                   labels: dailyUsage.chartLabels,
-                  datasets: [
-                    {
-                      data: dailyUsage.chartData,
-                    },
-                  ],
+                  datasets: [{ data: dailyUsage.chartData }],
                 }}
                 width={screenWidth - 56}
                 height={200}
                 yAxisSuffix="GB"
                 chartConfig={{
-                  backgroundColor: '#ffffff',
-                  backgroundGradientFrom: '#ffffff',
-                  backgroundGradientTo: '#ffffff',
+                  backgroundColor: "#ffffff",
+                  backgroundGradientFrom: "#ffffff",
+                  backgroundGradientTo: "#ffffff",
                   decimalPlaces: 2,
                   color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
                   labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`,
-                  style: {
-                    borderRadius: 16,
-                  },
-                  propsForDots: {
-                    r: '4',
-                    strokeWidth: '2',
-                    stroke: '#3B82F6',
-                  },
+                  propsForDots: { r: "4", strokeWidth: "2", stroke: "#3B82F6" },
                 }}
                 bezier
-                style={{
-                  marginVertical: 8,
-                  borderRadius: 16,
-                }}
+                style={{ marginVertical: 8, borderRadius: 16 }}
               />
             </View>
           </View>
-        ) : (
-          <View>
-            {/* Month and Usage Info */}
-            <TouchableOpacity
-              onPress={() => setMonthModalVisible(true)}
-              className="mb-4"
-            >
-              <Text className="text-gray-600 text-sm mb-2">{monthlyUsage.month}</Text>
-            </TouchableOpacity>
+        )}
 
+        {activeTab === "monthly" && monthlyUsage && (
+          <View>
             <View className="bg-white rounded-lg p-6 mb-4 shadow-sm">
-              <View className="flex-row items-center justify-between">
-                <DonutChart percentage={(monthlyUsage.totalUsage / 100) * 100} />
-                
-                <View className="flex-1 ml-6">
-                  <Text className="text-lg font-bold text-gray-800 mb-2">
-                    Monthly Usage
-                  </Text>
-                  <Text className="text-2xl font-bold text-gray-800">
-                    {monthlyUsage.totalUsage.toFixed(2)} GB
-                  </Text>
-                </View>
-              </View>
+              <Text className="text-lg font-bold text-gray-800 mb-2">
+                Monthly Usage: {monthlyUsage.totalUsage.toFixed(2)} GB
+              </Text>
             </View>
 
-            {/* Monthly Usage Chart */}
             <View className="bg-white rounded-lg p-4 mb-4 shadow-sm">
               <Text className="text-lg font-semibold text-gray-800 mb-4">
                 Monthly Usage Distribution
@@ -281,125 +192,56 @@ const MyUsage = ({ onCheckBillShare, group }: MyUsageProps) => {
               <LineChart
                 data={{
                   labels: monthlyUsage.chartLabels,
-                  datasets: [
-                    {
-                      data: monthlyUsage.chartData,
-                    },
-                  ],
+                  datasets: [{ data: monthlyUsage.chartData }],
                 }}
                 width={screenWidth - 56}
                 height={200}
                 yAxisSuffix="GB"
                 chartConfig={{
-                  backgroundColor: '#ffffff',
-                  backgroundGradientFrom: '#ffffff',
-                  backgroundGradientTo: '#ffffff',
-                  decimalPlaces: 1,
+                  backgroundColor: "#ffffff",
+                  backgroundGradientFrom: "#ffffff",
+                  backgroundGradientTo: "#ffffff",
+                  decimalPlaces: 2,
                   color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
                   labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`,
-                  style: {
-                    borderRadius: 16,
-                  },
-                  propsForDots: {
-                    r: '4',
-                    strokeWidth: '2',
-                    stroke: '#3B82F6',
-                  },
+                  propsForDots: { r: "4", strokeWidth: "2", stroke: "#3B82F6" },
                 }}
                 bezier
-                style={{
-                  marginVertical: 8,
-                  borderRadius: 16,
-                }}
+                style={{ marginVertical: 8, borderRadius: 16 }}
               />
             </View>
           </View>
         )}
 
-        {/* Check My Bill Share Button */}
-        <TouchableOpacity
-          onPress={onCheckBillShare}
-          className="bg-blue-500 py-4 rounded-lg mb-6"
-        >
+        <TouchableOpacity onPress={onCheckBillShare} className="bg-blue-500 py-4 rounded-lg mb-6">
           <Text className="text-white text-center font-semibold text-lg">
             Check My Bill Share
           </Text>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Date Selection Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={dateModalVisible}
-        onRequestClose={() => setDateModalVisible(false)}
-      >
-        <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
-          <View className="bg-white rounded-lg p-6 mx-4 max-w-sm w-full">
-            <Text className="text-lg font-bold mb-4">Select Date</Text>
-            {availableDates.map((date) => (
-              <TouchableOpacity
-                key={date}
-                onPress={() => handleDateSelect(date)}
-                className={`p-3 border-b border-gray-200 ${
-                  selectedDate === date ? 'bg-blue-50' : ''
-                }`}
-              >
-                <Text
-                  className={`text-base ${
-                    selectedDate === date ? 'text-blue-600 font-semibold' : 'text-gray-800'
-                  }`}
-                >
-                  {date}
-                </Text>
+      {showDatePicker && (
+        <Modal animationType="slide" transparent visible={showDatePicker} onRequestClose={() => setShowDatePicker(false)}>
+          <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
+            <View className="bg-white rounded-lg p-6 mx-4 max-w-sm w-full">
+              <Text className="text-lg font-bold mb-4">Select Date</Text>
+              <CustomDatePicker
+                visible={showDatePicker}
+                initialDate={pickerValue}
+                onClose={() => setShowDatePicker(false)}
+                onSelect={(date: Date) => {
+                  setPickerValue(date);
+                  setSelectedDate(date);
+                  fetchDailyUsageData(formatDateForFetch(date));
+                }}
+              />
+              <TouchableOpacity onPress={() => setShowDatePicker(false)} className="bg-blue-500 py-3 rounded-lg mt-4">
+                <Text className="text-white text-center font-semibold">Close</Text>
               </TouchableOpacity>
-            ))}
-            <TouchableOpacity
-              onPress={() => setDateModalVisible(false)}
-              className="bg-blue-500 py-3 rounded-lg mt-4"
-            >
-              <Text className="text-white text-center font-semibold">Close</Text>
-            </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
-
-      {/* Month Selection Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={monthModalVisible}
-        onRequestClose={() => setMonthModalVisible(false)}
-      >
-        <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
-          <View className="bg-white rounded-lg p-6 mx-4 max-w-sm w-full">
-            <Text className="text-lg font-bold mb-4">Select Month</Text>
-            {availableMonths.map((month) => (
-              <TouchableOpacity
-                key={month}
-                onPress={() => handleMonthSelect(month)}
-                className={`p-3 border-b border-gray-200 ${
-                  selectedMonth === month ? 'bg-blue-50' : ''
-                }`}
-              >
-                <Text
-                  className={`text-base ${
-                    selectedMonth === month ? 'text-blue-600 font-semibold' : 'text-gray-800'
-                  }`}
-                >
-                  {month}
-                </Text>
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity
-              onPress={() => setMonthModalVisible(false)}
-              className="bg-blue-500 py-3 rounded-lg mt-4"
-            >
-              <Text className="text-white text-center font-semibold">Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        </Modal>
+      )}
     </View>
   );
 };
