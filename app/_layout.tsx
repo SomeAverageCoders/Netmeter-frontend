@@ -1,19 +1,12 @@
 import { Stack } from "expo-router";
 import "./global.css";
-import { ConvexProvider, ConvexReactClient } from "convex/react";
-import { UserContext } from "../context/UserContext";
-import { useState } from "react";
+import { UserProvider } from "../context/UserContext";
 import { UserSignupDataProvider } from "../context/UserSignupDataContext";
-
-const convex = new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL!, {
-  unsavedChangesWarning: false,
-});
+import React from "react";
 
 export default function RootLayout() {
-  const [user, setUser] = useState(null);
   return (
-    <ConvexProvider client={convex}>
-      <UserContext.Provider value={{ user, setUser }}>
+      <UserProvider>
         <UserSignupDataProvider>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
@@ -22,7 +15,6 @@ export default function RootLayout() {
             <Stack.Screen name="screens" />
           </Stack>
         </UserSignupDataProvider>
-      </UserContext.Provider>
-    </ConvexProvider>
+      </UserProvider>
   );
 }

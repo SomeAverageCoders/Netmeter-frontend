@@ -1,6 +1,7 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "jsx": "react",
     "strict": true,
     "paths": {
       "@/*": [
@@ -15,5 +16,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "nativewind-env.d.ts"
-, "context/UserContext.jsx", "app/(auth)/phoneVerification.jsx", "app/(auth)/signup.jsx", "services/updateSmsRegionConfig.js", "app/(tabs)/_layout.jsx", "app/(tabs)/Profile.jsx", "app/screens/Groups/[id].jsx", "app/screens/BillingSummary/[id].jsx"  ]
+, "context/UserContext.jsx", "app/(auth)/phoneVerification.jsx", "app/(auth)/signup.jsx", "services/updateSmsRegionConfig.js", "app/(tabs)/_layout.jsx", "app/(tabs)/Profile.jsx", "app/screens/Groups/[id].jsx", "app/screens/BillingSummary/[id].jsx", "app/(auth)/login.jsx", "app/(tabs)/Home.jsx"  ]
 }

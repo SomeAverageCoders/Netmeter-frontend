@@ -2,19 +2,14 @@ import React, { useContext } from "react";
 import { View, Text, SafeAreaView, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { UserContext } from "../../context/UserContext";
 import Btn from "../../components/Btn";
 
 const success = () => {
   const router = useRouter();
-  const { user } = useContext(UserContext);
+  
   const handleContinue = () => {
-    if (user.email) {
-      console.log("User email:", user.email);
-      router.replace("/(tabs)/Home");
-    } else {
       router.replace("/(auth)/login");
-    }
+   
   };
   return (
     <SafeAreaView className="flex-1 bg-white">

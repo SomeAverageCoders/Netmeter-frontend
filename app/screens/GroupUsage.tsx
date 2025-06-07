@@ -522,7 +522,6 @@
 // Updated GroupUsage.tsx with restored date picker functionality and retained stylings
 
 import React, { useState, useEffect } from "react";
-import { Appearance, Platform } from "react-native";
 import {
   View,
   Text,
@@ -530,11 +529,12 @@ import {
   ScrollView,
   Modal,
   Dimensions,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LineChart } from "react-native-chart-kit";
 import DonutChart from "../../components/DonutChart";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import CustomDatePicker from "../../components/CustomDatePicker";
 
 interface GroupMember {
   id: string;
@@ -555,7 +555,7 @@ interface GroupUsageData {
 
 const GroupUsage = ({ onCheckBillSummary }: { onCheckBillSummary: () => void }) => {
   const [activeTab, setActiveTab] = useState<"daily" | "monthly">("daily");
-  const [selectedDate, setSelectedDate] = useState("Oct 2024");
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedMonth, setSelectedMonth] = useState("Oct 2024");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickerValue, setPickerValue] = useState(new Date());
@@ -567,6 +567,13 @@ const GroupUsage = ({ onCheckBillSummary }: { onCheckBillSummary: () => void }) 
 
   const [groupUsage, setGroupUsage] = useState<GroupUsageData | null>(null);
   const screenWidth = Dimensions.get("window").width;
+
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    });
 
   const fetchGroupUsage = async (type: "daily" | "monthly", value: string): Promise<GroupUsageData> => {
     return new Promise((resolve) => {
@@ -605,28 +612,8 @@ const GroupUsage = ({ onCheckBillSummary }: { onCheckBillSummary: () => void }) 
 
   useEffect(() => {
     const today = new Date();
-    const formatted = today.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-    });
-    setSelectedDate(formatted);
-    fetchGroupUsage("daily", formatted).then(setGroupUsage);
+    fetchGroupUsage("daily", formatDate(today)).then(setGroupUsage);
   }, []);
-
-  const handleDateChange = (event: any, selected?: Date) => {
-    if (event.type === "set" && selected) {
-      setPickerValue(selected);
-      const formatted = selected.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-      });
-      setSelectedDate(formatted);
-      fetchGroupUsage("daily", formatted).then(setGroupUsage);
-    }
-    setShowDatePicker(false);
-  };
 
   const handleMonthSelect = (month: string) => {
     const formatted = `${month} ${selectedYear}`;
@@ -635,31 +622,22 @@ const GroupUsage = ({ onCheckBillSummary }: { onCheckBillSummary: () => void }) 
     setShowCustomMonthPicker(false);
   };
 
+  const handleDatePick = (date: Date) => {
+    setSelectedDate(date);
+    fetchGroupUsage("daily", formatDate(date)).then(setGroupUsage);
+  };
+
   if (!groupUsage) return <Text className="text-center mt-10 text-gray-600">Loading...</Text>;
 
   return (
     <View className="flex-1 bg-white">
       <View className="bg-white px-4">
         <View className="flex-row">
-          <TouchableOpacity
-            onPress={() => setActiveTab("daily")}
-            className={`flex-1 py-3 border-b-2 ${
-              activeTab === "daily" ? "border-blue-500 bg-gray-100" : "border-transparent"
-            }`}
-          >
-            <Text className={`text-center font-medium ${activeTab === "daily" ? "text-blue-500" : "text-gray-600"}`}>
-              Daily
-            </Text>
+          <TouchableOpacity onPress={() => setActiveTab("daily")} className={`flex-1 py-3 border-b-2 ${activeTab === "daily" ? "border-blue-500 bg-gray-100" : "border-transparent"}`}>
+            <Text className={`text-center font-medium ${activeTab === "daily" ? "text-blue-500" : "text-gray-600"}`}>Daily</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setActiveTab("monthly")}
-            className={`flex-1 py-3 border-b-2 ${
-              activeTab === "monthly" ? "border-blue-500 bg-gray-100" : "border-transparent"
-            }`}
-          >
-            <Text className={`text-center font-medium ${activeTab === "monthly" ? "text-blue-500" : "text-gray-600"}`}>
-              Monthly
-            </Text>
+          <TouchableOpacity onPress={() => setActiveTab("monthly")} className={`flex-1 py-3 border-b-2 ${activeTab === "monthly" ? "border-blue-500 bg-gray-100" : "border-transparent"}`}>
+            <Text className={`text-center font-medium ${activeTab === "monthly" ? "text-blue-500" : "text-gray-600"}`}>Monthly</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -671,30 +649,25 @@ const GroupUsage = ({ onCheckBillSummary }: { onCheckBillSummary: () => void }) 
           </Text>
           <TouchableOpacity
             onPress={() => {
-              if (activeTab === "daily") {
-                setShowDatePicker(true);
-              } else {
-                setShowCustomMonthPicker(true);
-              }
+              activeTab === "daily" ? setShowDatePicker(true) : setShowCustomMonthPicker(true);
             }}
             className="bg-white border border-gray-300 px-4 py-3 rounded-md"
           >
             <Text className="text-gray-800 text-base">
-              {activeTab === "daily" ? selectedDate : selectedMonth}
+              {activeTab === "daily" ? formatDate(selectedDate) : selectedMonth}
             </Text>
           </TouchableOpacity>
 
-          {showDatePicker && (
-            <View className="bg-white">
-              <DateTimePicker
-                value={pickerValue}
-                mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                themeVariant="light"
-                onChange={handleDateChange}
-              />
-            </View>
-          )}
+          <CustomDatePicker
+            visible={showDatePicker}
+            initialDate={pickerValue}
+            onClose={() => setShowDatePicker(false)}
+            onSelect={(date: Date) => {
+              setPickerValue(date);
+              setSelectedDate(date);
+              fetchGroupUsage("daily", formatDate(date)).then(setGroupUsage);
+            }}
+          />
 
           {showCustomMonthPicker && (
             <Modal transparent animationType="fade">
@@ -703,11 +676,7 @@ const GroupUsage = ({ onCheckBillSummary }: { onCheckBillSummary: () => void }) 
                   <Text className="text-lg font-bold mb-4">Select Month & Year</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
                     {months.map((month) => (
-                      <TouchableOpacity
-                        key={month}
-                        onPress={() => handleMonthSelect(month)}
-                        className="px-3 py-2 mr-2 bg-gray-100 rounded-md"
-                      >
+                      <TouchableOpacity key={month} onPress={() => handleMonthSelect(month)} className="px-3 py-2 mr-2 bg-gray-100 rounded-md">
                         <Text>{month}</Text>
                       </TouchableOpacity>
                     ))}
@@ -723,10 +692,7 @@ const GroupUsage = ({ onCheckBillSummary }: { onCheckBillSummary: () => void }) 
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
-                  <TouchableOpacity
-                    onPress={() => setShowCustomMonthPicker(false)}
-                    className="mt-4 bg-blue-500 py-3 rounded-md"
-                  >
+                  <TouchableOpacity onPress={() => setShowCustomMonthPicker(false)} className="mt-4 bg-blue-500 py-3 rounded-md">
                     <Text className="text-white text-center font-semibold">Cancel</Text>
                   </TouchableOpacity>
                 </View>
@@ -775,10 +741,7 @@ const GroupUsage = ({ onCheckBillSummary }: { onCheckBillSummary: () => void }) 
           {groupUsage.members.map((member) => (
             <View key={member.id} className="flex-row items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
               <View className="flex-row items-center flex-1">
-                <View
-                  className="w-10 h-10 rounded-full items-center justify-center mr-3"
-                  style={{ backgroundColor: member.color }}
-                >
+                <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{ backgroundColor: member.color }}>
                   <Ionicons name="person" size={20} color="white" />
                 </View>
                 <Text className="font-medium text-gray-800 flex-1">{member.name}</Text>
@@ -788,10 +751,7 @@ const GroupUsage = ({ onCheckBillSummary }: { onCheckBillSummary: () => void }) 
           ))}
         </View>
 
-        <TouchableOpacity
-          onPress={onCheckBillSummary}
-          className="bg-blue-500 py-4 rounded-lg mb-6"
-        >
+        <TouchableOpacity onPress={onCheckBillSummary} className="bg-blue-500 py-4 rounded-lg mb-6">
           <Text className="text-white text-center font-semibold text-lg">Check Bill Summary</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -800,5 +760,3 @@ const GroupUsage = ({ onCheckBillSummary }: { onCheckBillSummary: () => void }) 
 };
 
 export default GroupUsage;
-
-

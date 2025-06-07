@@ -14,9 +14,10 @@ import { useRouter } from "expo-router";
 import ImagePath from "../../constants/ImagePath";
 import Btn from "../../components/Btn";
 import Input from "../../components/Input";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../services/firebaseConfig";
+// import { createUserWithEmailAndPassword } from "firebase/auth";
+// import { auth } from "../../services/firebaseConfig";
 import { useSignupData } from "../../context/UserSignupDataContext";
+import axios from "axios";
 
 const Signup = () => {
   const router = useRouter();
@@ -41,30 +42,30 @@ const Signup = () => {
       return;
     }
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(async (userCredential) => {
-        const firebaseUser = userCredential.user;
-        console.log("User signed up:", firebaseUser);
-        if (firebaseUser) {
-          const passwordHash = hashPassword(password);
-          console.log("Password hash:", passwordHash);
-          const formattedPhone = "+94" + phone.slice(1);
-          setSignupData({
-            name: username,
-            phone: formattedPhone,
-            email,
-            passwordHash,
-          });
-          console.log("Saved signup data to context: phone number is ", phone);
-          router.push(
-            `/phoneVerification?phone=${encodeURIComponent(formattedPhone)}`
-          );
-        }
+    const hashedPassword = hashPassword(password);
+
+    axios
+      .post("http://localhost:3000/users", {
+      name: username,
+      email: email,
+      mobile: phone,
+      userRole: "user",
+      password: hashedPassword,
+      })
+      .then((response) => {
+      console.log("User signed up:", response.data);
+      setSignupData({
+        name: username,
+        phone: phone,
+        email: email,
+      });
+      router.push(
+        `/phoneVerification`
+      );
       })
       .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.error("Error signing up:", errorCode, errorMessage);
+      console.error("Error signing up:", error);
+      Alert.alert("Error", "Failed to sign up. Please try again.");
       });
   };
 

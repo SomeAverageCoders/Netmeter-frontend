@@ -11,7 +11,7 @@ import Btn from "../../components/Btn";
 
 const Unsuccess = () => {
   const router = useRouter();
-  const { phone } = useLocalSearchParams();
+  const { message } = useLocalSearchParams();
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" />
@@ -25,8 +25,7 @@ const Unsuccess = () => {
           Verification Failed!
         </Text>
         <Text className="text-base text-gray-600 text-center mb-6 max-w-xs">
-          Sorry, your mobile number verification was unsuccessful. Please try
-          again.
+          {message || "Something went wrong. Please try again."}
         </Text>
         <View className="w-full rounded-lg p-6">
           <Btn
@@ -34,7 +33,7 @@ const Unsuccess = () => {
             text="Try Again"
             onPress={() =>
               router.push(
-                `/phoneVerification?phone=${encodeURIComponent(Array.isArray(phone) ? phone[0] : phone || "")}`
+                `/phoneVerification`
               )
             }
           />
