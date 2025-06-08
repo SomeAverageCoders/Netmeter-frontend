@@ -1,5 +1,5 @@
 {
-  "extends": "expo/tsconfig.base",
+  "extends": "expo/tsconfig.base.json",
   "compilerOptions": {
     "jsx": "react",
     "strict": true,
@@ -16,5 +16,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "nativewind-env.d.ts"
-, "context/UserContext.jsx", "app/(auth)/phoneVerification.jsx", "app/(auth)/signup.jsx", "services/updateSmsRegionConfig.js", "app/(tabs)/_layout.jsx", "app/(tabs)/Profile.jsx", "app/screens/Groups/[id].jsx", "app/screens/BillingSummary/[id].jsx", "app/(auth)/login.jsx", "app/(tabs)/Home.jsx"  ]
+, "context/UserContext.jsx", "app/(auth)/phoneVerification.jsx", "app/(auth)/signup.jsx", "services/updateSmsRegionConfig.js", "app/(tabs)/_layout.jsx", "app/(tabs)/Profile.jsx", "app/screens/Groups/[id].jsx", "app/screens/BillingSummary/[id].jsx", "app/(auth)/login.jsx", "app/(tabs)/Home.jsx", "app/(tabs)/Usage.tsx", "app/screens/TestDate.jsx", "components/CalendarModal.jsx"  ]
 }

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Modal, Dimensions, Platform } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import Svg, { Circle } from "react-native-svg"; 
-import CustomDatePicker from "@/components/CustomDatePicker";
+import React = require("react");
+import CalendarModal from "../../components/CalendarModal"
 
-// Donut chart component using react-native-svg
 const DonutChart = ({ percentage, size = 120 }: { percentage: number; size?: number }) => {
   const strokeWidth = 12;
   const radius = (size - strokeWidth) / 2;
@@ -55,9 +55,14 @@ const formatDateForFetch = (date: Date) =>
     year: "numeric",
   });
 
-const MyUsage = ({ onCheckBillShare }: { onCheckBillShare: () => void }) => {
+interface MyUsageProps {
+  onCheckBillShare: () => void;
+  group?: any; 
+}
+
+const MyUsage = ({ onCheckBillShare, group }: MyUsageProps) => {
   const [activeTab, setActiveTab] = useState<"daily" | "monthly">("daily");
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date("2024-10-16"));
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [dailyUsage, setDailyUsage] = useState<any>(null);
   const [monthlyUsage, setMonthlyUsage] = useState<any>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -66,8 +71,16 @@ const MyUsage = ({ onCheckBillShare }: { onCheckBillShare: () => void }) => {
 
   useEffect(() => {
     fetchDailyUsageData(formatDateForFetch(selectedDate));
-    fetchMonthlyUsageData("Oct 2024");
-  }, []);
+  }, [selectedDate]);
+
+  useEffect(() => {
+    const monthYear = selectedDate.toLocaleDateString("en-GB", {
+      month: "short",
+      year: "numeric",
+    });
+    fetchMonthlyUsageData(monthYear);
+  }, [selectedDate]);
+
 
   const fetchDailyUsageData = (date: string) => {
     setTimeout(() => {
@@ -92,15 +105,6 @@ const MyUsage = ({ onCheckBillShare }: { onCheckBillShare: () => void }) => {
       setMonthlyUsage(mockData);
     }, 500);
   };
-
-  // const handleDateChange = (event: any, selected: Date | undefined) => {
-  //   if (event.type === "set" && selected) {
-  //     setPickerValue(selected);
-  //     setSelectedDate(selected);
-  //     fetchDailyUsageData(formatDateForFetch(selected));
-  //   }
-  //   setShowDatePicker(false);
-  // };
 
   return (
     <View className="flex-1">
@@ -179,6 +183,9 @@ const MyUsage = ({ onCheckBillShare }: { onCheckBillShare: () => void }) => {
 
         {activeTab === "monthly" && monthlyUsage && (
           <View>
+            <TouchableOpacity onPress={() => setShowDatePicker(true)} className="mb-4">
+              <Text className="text-gray-600 text-sm mb-2">{formatDateForDisplay(selectedDate)}</Text>
+            </TouchableOpacity>
             <View className="bg-white rounded-lg p-6 mb-4 shadow-sm">
               <Text className="text-lg font-bold text-gray-800 mb-2">
                 Monthly Usage: {monthlyUsage.totalUsage.toFixed(2)} GB
@@ -223,22 +230,15 @@ const MyUsage = ({ onCheckBillShare }: { onCheckBillShare: () => void }) => {
       {showDatePicker && (
         <Modal animationType="slide" transparent visible={showDatePicker} onRequestClose={() => setShowDatePicker(false)}>
           <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
-            <View className="bg-white rounded-lg p-6 mx-4 max-w-sm w-full">
-              <Text className="text-lg font-bold mb-4">Select Date</Text>
-              <CustomDatePicker
+              <CalendarModal
                 visible={showDatePicker}
-                initialDate={pickerValue}
+                initialDate={pickerValue.toISOString().split("T")[0]}
                 onClose={() => setShowDatePicker(false)}
                 onSelect={(date: Date) => {
                   setPickerValue(date);
                   setSelectedDate(date);
-                  fetchDailyUsageData(formatDateForFetch(date));
                 }}
               />
-              <TouchableOpacity onPress={() => setShowDatePicker(false)} className="bg-blue-500 py-3 rounded-lg mt-4">
-                <Text className="text-white text-center font-semibold">Close</Text>
-              </TouchableOpacity>
-            </View>
           </View>
         </Modal>
       )}

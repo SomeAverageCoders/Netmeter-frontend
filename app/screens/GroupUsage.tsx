@@ -6,12 +6,11 @@ import {
   ScrollView,
   Modal,
   Dimensions,
-  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LineChart } from "react-native-chart-kit";
 import DonutChart from "../../components/DonutChart";
-import CustomDatePicker from "../../components/CustomDatePicker";
+import CalendarModal from "../../components/CalendarModal";
 
 interface GroupMember {
   id: string;
@@ -30,17 +29,16 @@ interface GroupUsageData {
   chartLabels: string[];
 }
 
-const GroupUsage = ({
-  onCheckBillSummary,
-}: {
+interface GroupUsageProps {
   onCheckBillSummary: () => void;
-}) => 
-  {
-      const [activeTab, setActiveTab] = useState<"daily" | "monthly">("daily");
+  group?: any; 
+}
+
+const GroupUsage = ({ onCheckBillSummary, group }: GroupUsageProps) => {
+  const [activeTab, setActiveTab] = useState<"daily" | "monthly">("daily");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedMonth, setSelectedMonth] = useState("Oct 2024");
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [pickerValue, setPickerValue] = useState(new Date());
   const [showCustomMonthPicker, setShowCustomMonthPicker] = useState(false);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -56,8 +54,6 @@ const GroupUsage = ({
       month: "short",
       day: "2-digit",
     });
-
-const [displayDate, setDisplayDate] = useState(formatDate(new Date()));
 
 
   const fetchGroupUsage = async (type: "daily" | "monthly", value: string): Promise<GroupUsageData> => {
@@ -107,11 +103,6 @@ const [displayDate, setDisplayDate] = useState(formatDate(new Date()));
     setShowCustomMonthPicker(false);
   };
 
-  const handleDatePick = (date: Date) => {
-    setSelectedDate(date);
-    fetchGroupUsage("daily", formatDate(date)).then(setGroupUsage);
-  };
-
   if (!groupUsage) return <Text className="text-center mt-10 text-gray-600">Loading...</Text>;
     return (
     <View className="flex-1 bg-white">
@@ -142,15 +133,12 @@ const [displayDate, setDisplayDate] = useState(formatDate(new Date()));
             </Text>
           </TouchableOpacity>
           
-
-          <CustomDatePicker
+          <CalendarModal
             visible={showDatePicker}
-            initialDate={pickerValue}
+            initialDate={selectedDate.toISOString().split('T')[0]}
             onClose={() => setShowDatePicker(false)}
             onSelect={(date: Date) => {
-              setPickerValue(date);
               setSelectedDate(date);
-              {console.log("seleceted date inside : ",selectedDate);}
               fetchGroupUsage("daily", formatDate(date)).then(setGroupUsage);
             }}
           />
@@ -187,7 +175,7 @@ const [displayDate, setDisplayDate] = useState(formatDate(new Date()));
           )}
         </View>
 
-        <View className="bg-white rounded-lg p-6 mb-4 shadow-sm">
+        <View className="bg-white rounded-lg p-6 mb-4 shadow-sm justify-center items-center">
           <DonutChart
             data={groupUsage.members.map((m) => m.usage)}
             colors={groupUsage.members.map((m) => m.color)}

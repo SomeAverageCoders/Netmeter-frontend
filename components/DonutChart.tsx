@@ -60,8 +60,8 @@ const DonutChart: React.FC<DonutChartProps> = ({
                 <SvgText
                   x={labelX}
                   y={labelY}
-                  fill="white"
-                  fontSize="10"
+                  fill="blue"
+                  fontSize="12"
                   fontWeight="bold"
                   textAnchor="middle"
                 >
@@ -84,10 +84,10 @@ const DonutChart: React.FC<DonutChartProps> = ({
             transform: [{ translateY: -10 }],
           }}
         >
-          <RNText style={{ fontSize: 22, fontWeight: 'bold', color: centerLabelColor }}>
+          <RNText style={{ fontSize: 22, fontWeight: 'bold', color: 'green' }}>
             {Math.round((totalUsage / totalCapacity) * 100)}%
           </RNText>
-          <RNText style={{ fontSize: 12, color: '#888' }}>
+          <RNText style={{ fontSize: 12, color: '#888', fontWeight: 'bold' }}>
             {totalUsage.toFixed(1)} / {totalCapacity} GB
           </RNText>
         </View>
