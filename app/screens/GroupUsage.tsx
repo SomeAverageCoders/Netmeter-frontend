@@ -35,6 +35,7 @@ interface GroupUsageProps {
 }
 
 const GroupUsage = ({ onCheckBillSummary, group }: GroupUsageProps) => {
+  // console.log("GroupUsage component rendered with group: ", group);
   const [activeTab, setActiveTab] = useState<"daily" | "monthly">("daily");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedMonth, setSelectedMonth] = useState("Oct 2024");

@@ -14,7 +14,7 @@ const Home = () => {
   const [groups, setGroups] = useState([]);
   const [loadingGroups, setLoadingGroups] = useState(false);
 
-    const fetchUserGroups = async () => {
+  const fetchUserGroups = async () => {
     if (!user || !user.id) return;
 
     setLoadingGroups(true);

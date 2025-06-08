@@ -61,6 +61,7 @@ interface MyUsageProps {
 }
 
 const MyUsage = ({ onCheckBillShare, group }: MyUsageProps) => {
+  // console.log("MyUsage component rendered with group: ", group);
   const [activeTab, setActiveTab] = useState<"daily" | "monthly">("daily");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [dailyUsage, setDailyUsage] = useState<any>(null);

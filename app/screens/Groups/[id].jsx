@@ -15,14 +15,35 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import axios from "axios";
+// import { useUser } from "../../../context/UserContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ManageGroupScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
-
+  // const { user } = useUser();
   const groupId = route.params?.id;
   console.log("Group ID:", groupId);
-
+  const [token, setToken] = useState(null);
+  useEffect(() => {
+    const fetchToken = async () => {
+      console.log("Fetching token from AsyncStorage");
+      try {
+        const token = await AsyncStorage.getItem("access_token");
+        if (token) {
+          setToken(token);
+          console.log("Token found:", token);
+        } else {
+          console.log("No token found, redirecting to login");
+          router.replace("/(auth)/login");
+        }
+      } catch (error) {
+        console.error("Error fetching token:", error);
+        router.replace("/(auth)/login");
+      }
+    };
+    fetchToken();
+  }, []);
   const [groupData, setGroupData] = useState(null);
   const [wifiData, setWifiData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +51,7 @@ const ManageGroupScreen = () => {
   const [selectedMember, setSelectedMember] = useState(null);
   const [deviceNickname, setDeviceNickname] = useState("");
   const [deviceMacAddress, setDeviceMacAddress] = useState("");
-  const [wifiConfigModalVisible, setWifiConfigModalVisible] = useState(false);
+  // const [wifiConfigModalVisible, setWifiConfigModalVisible] = useState(false);
   const [addUserModalVisible, setAddUserModalVisible] = useState(false);
   const [searchUsername, setSearchUsername] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -39,43 +60,54 @@ const ManageGroupScreen = () => {
   const [addingDevice, setAddingDevice] = useState(false);
   const [removingMember, setRemovingMember] = useState(null);
   const [removingDevice, setRemovingDevice] = useState(null);
- const [showRemovalModal, setShowRemovalModal] = useState(false);
-  const [removalType, setRemovalType] = useState('');
+  const [showRemovalModal, setShowRemovalModal] = useState(false);
+  const [removalType, setRemovalType] = useState("");
   const [itemToRemove, setItemToRemove] = useState(null);
-  const [memberNameForDevice, setMemberNameForDevice] = useState(''); 
+  const [memberNameForDevice, setMemberNameForDevice] = useState("");
   const [deviceOwnerUserId, setDeviceOwnerUserId] = useState(null);
 
   // Fetch group members and devices
   const fetchGroupData = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/groups/${groupId}/members-with-devices`);
+      const response = await fetch(
+        `http://localhost:3000/groups/${groupId}/members-with-devices`,
+        {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!response.ok) {
-        throw new Error('Failed to fetch group data');
+        throw new Error("Failed to fetch group data");
       }
       const data = await response.json();
       setGroupData(data);
     } catch (error) {
-      console.error('Error fetching group data:', error);
-      Alert.alert('Error', 'Failed to load group data. Please try again.');
+      console.error("Error fetching group data:", error);
+      Alert.alert("Error", "Failed to load group data. Please try again.");
     }
-  }
+  };
 
   // Fetch WiFi configuration
   const fetchWifiData = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/wifi/${groupId}`);
+      const response = await fetch(`http://localhost:3000/wifi/${groupId}`,
+        {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!response.ok) {
         if (response.status === 404) {
           // No WiFi config found
           setWifiData(null);
           return;
         }
-        throw new Error('Failed to fetch WiFi data');
+        throw new Error("Failed to fetch WiFi data");
       }
       const data = await response.json();
       setWifiData(data);
     } catch (error) {
-      console.error('Error fetching WiFi data:', error);
+      console.error("Error fetching WiFi data:", error);
       // Don't show alert for WiFi data as it might not exist
       setWifiData(null);
     }
@@ -99,7 +131,6 @@ const ManageGroupScreen = () => {
     setModalVisible(true);
   };
 
-
   const handleAddDevice = async () => {
     console.log("Adding device for member:", selectedMember.id);
     if (
@@ -112,7 +143,10 @@ const ManageGroupScreen = () => {
     }
     console.log("before validation", deviceMacAddress.trim());
     // Normalize MAC address: remove spaces, convert to uppercase, replace any separator with :
-    let normalizedMac = deviceMacAddress.trim().toUpperCase().replace(/[^0-9A-F]/g, ":");
+    let normalizedMac = deviceMacAddress
+      .trim()
+      .toUpperCase()
+      .replace(/[^0-9A-F]/g, ":");
     // Remove duplicate colons
     normalizedMac = normalizedMac.replace(/:+/g, ":");
     // Remove leading/trailing colons
@@ -130,12 +164,13 @@ const ManageGroupScreen = () => {
     setDeviceMacAddress(normalizedMac);
     console.log("after validation", normalizedMac);
     setAddingDevice(true);
-    
+
     try {
-      const response = await fetch('http://localhost:3000/devices/add', {
-        method: 'POST',
+      const response = await fetch("http://localhost:3000/devices/add", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           userId: selectedMember.id,
@@ -147,22 +182,24 @@ const ManageGroupScreen = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add device');
+        throw new Error(errorData.message || "Failed to add device");
       }
 
       // Close modal and reset form
       setModalVisible(false);
       setDeviceNickname("");
       setDeviceMacAddress("");
-      
+
       // Refresh group data to show the new device
       await fetchGroupData();
-      
+
       Alert.alert("Success", "Device added successfully!");
-      
     } catch (error) {
-      console.error('Error adding device:', error);
-      Alert.alert('Error', error.message || 'Failed to add device. Please try again.');
+      console.error("Error adding device:", error);
+      Alert.alert(
+        "Error",
+        error.message || "Failed to add device. Please try again."
+      );
     } finally {
       setAddingDevice(false);
     }
@@ -192,15 +229,20 @@ const ManageGroupScreen = () => {
         }}
       >
         <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 12 }}>
-          {`Remove ${removalType === 'member' ? 'Member' : 'Device'}`}
+          {`Remove ${removalType === "member" ? "Member" : "Device"}`}
         </Text>
         <Text style={{ fontSize: 16, marginBottom: 24, textAlign: "center" }}>
-          {removalType === 'member' 
+          {removalType === "member"
             ? `Are you sure you want to remove ${itemToRemove?.name} from this group?`
-            : `Are you sure you want to remove "${itemToRemove?.name}" from this group?`
-          }
+            : `Are you sure you want to remove "${itemToRemove?.name}" from this group?`}
         </Text>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%" }}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            width: "100%",
+          }}
+        >
           <TouchableOpacity
             style={{
               flex: 1,
@@ -213,8 +255,8 @@ const ManageGroupScreen = () => {
             onPress={() => {
               setShowRemovalModal(false);
               setItemToRemove(null);
-              setRemovalType('');
-              setMemberNameForDevice('');
+              setRemovalType("");
+              setMemberNameForDevice("");
               setDeviceOwnerUserId(null);
             }}
           >
@@ -237,17 +279,17 @@ const ManageGroupScreen = () => {
       </View>
     </View>
   );
-    // Updated handleRemoveMember function
+  // Updated handleRemoveMember function
   const handleRemoveMember = (member) => {
     setItemToRemove(member);
-    setRemovalType('member');
+    setRemovalType("member");
     setShowRemovalModal(true);
   };
 
   // Updated handleRemoveDevice function
   const handleRemoveDevice = (device, memberName, userId) => {
     setItemToRemove(device);
-    setRemovalType('device');
+    setRemovalType("device");
     setMemberNameForDevice(memberName);
     setDeviceOwnerUserId(userId);
     setShowRemovalModal(true);
@@ -255,55 +297,68 @@ const ManageGroupScreen = () => {
 
   // New confirmRemoval function that handles the actual removal
   const confirmRemoval = async () => {
-    if (removalType === 'member') {
+    if (removalType === "member") {
       // Remove member logic
       setRemovingMember(itemToRemove.id);
-      
+
       try {
         const response = await axios.delete(
           `http://localhost:3000/groups/${groupId}/remove-member/${itemToRemove.id}`,
           {
             headers: {
-              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
             },
           }
         );
 
         // Refresh group data to show updated members
         await fetchGroupData();
-        
-        console.log("Success", `${itemToRemove.name} has been removed from the group.`);
-        
+
+        console.log(
+          "Success",
+          `${itemToRemove.name} has been removed from the group.`
+        );
       } catch (error) {
-        console.error('Error removing member:', error);
-        Alert.alert('Error', error.message || 'Failed to remove member. Please try again.');
+        console.error("Error removing member:", error);
+        Alert.alert(
+          "Error",
+          error.message || "Failed to remove member. Please try again."
+        );
       } finally {
         setRemovingMember(null);
       }
-    } else if (removalType === 'device') {
+    } else if (removalType === "device") {
       // Remove device logic
       setRemovingDevice(itemToRemove.id);
-      
+
       try {
         const response = await axios.delete(
           `http://localhost:3000/devices/${itemToRemove.id}/group/${groupId}/user/${deviceOwnerUserId}`,
           {
             headers: {
-              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
             },
           }
         );
 
-        console.log('Remove device response:', response);
+        console.log("Remove device response:", response);
 
         // Refresh group data to show updated devices
         await fetchGroupData();
-        
-        Alert.alert("Success", `"${itemToRemove.name}" has been removed from the group.`);
-        
+
+        Alert.alert(
+          "Success",
+          `"${itemToRemove.name}" has been removed from the group.`
+        );
       } catch (error) {
-        console.error('Error removing device:', error);
-        Alert.alert('Error', error.response?.data?.message || 'Failed to remove device. Please try again.');
+        console.error("Error removing device:", error);
+        Alert.alert(
+          "Error",
+          error.response?.data?.message ||
+            "Failed to remove device. Please try again."
+        );
       } finally {
         setRemovingDevice(null);
       }
@@ -312,26 +367,30 @@ const ManageGroupScreen = () => {
     // Close modal and reset state
     setShowRemovalModal(false);
     setItemToRemove(null);
-    setRemovalType('');
-    setMemberNameForDevice('');
+    setRemovalType("");
+    setMemberNameForDevice("");
     setDeviceOwnerUserId(null);
   };
 
   // Search for users functionality (from CreateGroupScreen)
   const handleSearchUser = async () => {
-    if (searchUsername.trim() === '') {
+    if (searchUsername.trim() === "") {
       setSearchResults([]);
       return;
     }
-    
+
     setSearching(true);
     try {
       const response = await axios.get(
-        `http://localhost:3000/users/search?name=${encodeURIComponent(searchUsername)}`
+        `http://localhost:3000/users/search?name=${encodeURIComponent(searchUsername)}`,
+        {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
-      
-      console.log('Search response:', response.data);
-      
+
+      console.log("Search response:", response.data);
+
       // Handle different possible response structures
       let users = [];
       if (response.data.users) {
@@ -341,25 +400,26 @@ const ManageGroupScreen = () => {
       } else if (Array.isArray(response.data)) {
         users = response.data;
       }
-      
-      console.log('Processed users:', users);
-      
+
+      console.log("Processed users:", users);
+
       // Filter out users that are already in the group
-      const currentMemberIds = groupData.members.map(member => member.id);
-      const filteredUsers = users.filter(user => !currentMemberIds.includes(user.id));
-      
+      const currentMemberIds = groupData.members.map((member) => member.id);
+      const filteredUsers = users.filter(
+        (user) => !currentMemberIds.includes(user.id)
+      );
+
       setSearchResults(filteredUsers);
-      
+
       if (filteredUsers.length === 0 && users.length > 0) {
-        Alert.alert('No Results', 'All found users are already in this group');
+        Alert.alert("No Results", "All found users are already in this group");
       } else if (filteredUsers.length === 0) {
-        Alert.alert('No Results', 'No users found matching your search');
+        Alert.alert("No Results", "No users found matching your search");
       }
-      
     } catch (error) {
-      console.error('Search error:', error);
+      console.error("Search error:", error);
       setSearchResults([]);
-      Alert.alert('Error', 'Failed to search users. Please try again.');
+      Alert.alert("Error", "Failed to search users. Please try again.");
     } finally {
       setSearching(false);
     }
@@ -368,39 +428,42 @@ const ManageGroupScreen = () => {
   // Add user to group
   const handleAddUserToGroup = async (user) => {
     setAddingMember(true);
-    
+
     try {
       const response = await axios.post(
         `http://localhost:3000/groups/${groupId}/add-member/${user.id}`,
         {},
         {
           headers: {
-            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         }
       );
-      
-      console.log('Add member response:', response.data);
-      
+
+      console.log("Add member response:", response.data);
+
       // Close modal and reset form
       setAddUserModalVisible(false);
       setSearchUsername("");
       setSearchResults([]);
-      
+
       // Refresh group data to show the new member
       await fetchGroupData();
-      
-      Alert.alert("Success", `${user.name || user.username} has been added to the group!`);
-      
+
+      Alert.alert(
+        "Success",
+        `${user.name || user.username} has been added to the group!`
+      );
     } catch (error) {
-      console.error('Add member error:', error);
-      let errorMessage = 'Failed to add user to group. Please try again.';
-      
+      console.error("Add member error:", error);
+      let errorMessage = "Failed to add user to group. Please try again.";
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       }
-      
-      Alert.alert('Error', errorMessage);
+
+      Alert.alert("Error", errorMessage);
     } finally {
       setAddingMember(false);
     }
@@ -418,11 +481,16 @@ const ManageGroupScreen = () => {
     return (
       <View>
         {devices.map((device, index) => (
-          <View key={device.id} className="mb-2 flex-row items-center justify-between">
+          <View
+            key={device.id}
+            className="mb-2 flex-row items-center justify-between"
+          >
             <View className="flex-1">
               <Text className="text-sm font-medium">{device.name}</Text>
               {device.macAddress && (
-                <Text className="text-xs text-gray-500">{device.macAddress}</Text>
+                <Text className="text-xs text-gray-500">
+                  {device.macAddress}
+                </Text>
               )}
             </View>
             <TouchableOpacity
@@ -467,7 +535,9 @@ const ManageGroupScreen = () => {
       <SafeAreaView className="flex-1 bg-white">
         <StatusBar barStyle="dark-content" />
         <View className="flex-1 items-center justify-center">
-          <Text className="text-lg text-red-500">Failed to load group data</Text>
+          <Text className="text-lg text-red-500">
+            Failed to load group data
+          </Text>
           <TouchableOpacity
             className="mt-4 bg-blue-500 px-6 py-3 rounded-lg"
             onPress={() => {
@@ -544,19 +614,24 @@ const ManageGroupScreen = () => {
                         disabled={removingMember === member.id}
                       >
                         {removingMember === member.id ? (
-                          <Ionicons name="hourglass" size={12} color="#ef4444" />
+                          <Ionicons
+                            name="hourglass"
+                            size={12}
+                            color="#ef4444"
+                          />
                         ) : (
-                          <Ionicons name="close-circle" size={14} color="#ef4444" />
+                          <Ionicons
+                            name="close-circle"
+                            size={14}
+                            color="#ef4444"
+                          />
                         )}
                       </TouchableOpacity>
                     </View>
                   </View>
 
                   {/* Devices Column */}
-                  <View
-                    style={{ width: "55%" }}
-                    className="justify-center"
-                  >
+                  <View style={{ width: "55%" }} className="justify-center">
                     {renderDevicesCell(member.devices, member.name, member.id)}
                   </View>
 
@@ -582,9 +657,7 @@ const ManageGroupScreen = () => {
               className="bg-blue-500 py-3 px-4 rounded-lg items-center w-1/2"
               onPress={() => setAddUserModalVisible(true)}
             >
-              <Text className="text-white font-bold">
-                Add New User
-              </Text>
+              <Text className="text-white font-bold">Add New User</Text>
             </TouchableOpacity>
           </View>
 
